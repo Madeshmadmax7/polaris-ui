@@ -132,11 +132,12 @@ export const ai = {
         return request('/ai/upload', { method: 'POST', body: formData });
     },
     getDocuments: () => request('/ai/documents'),
-    query: (data) => request('/ai/query', { method: 'POST', body: JSON.stringify(data) }),
     createStudyPlan: (data) => request('/ai/study-plan', { method: 'POST', body: JSON.stringify(data) }),
     getStudyPlans: () => request('/ai/study-plans'),
     getStudyPlan: (id) => request(`/ai/study-plan/${id}`),
-    generateQuiz: (data) => request('/ai/quiz/generate', { method: 'POST', body: JSON.stringify(data) }),
-    submitQuiz: (data) => request('/ai/quiz/submit', { method: 'POST', body: JSON.stringify(data) }),
-    getQuizzes: () => request('/ai/quizzes'),
+    getStudyPlanProgress: (planId) => request(`/ai/study-plan/${planId}/progress`),
+    markChapterComplete: (planId, chapterNumber) => 
+        request(`/ai/study-plan/${planId}/chapter/${chapterNumber}/complete`, { method: 'POST' }),
+    submitPlanQuiz: (planId, answers) => 
+        request(`/ai/study-plan/${planId}/quiz/submit`, { method: 'POST', body: JSON.stringify(answers) }),
 };
