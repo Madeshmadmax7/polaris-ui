@@ -2,7 +2,9 @@
  * LifeOS – API Client (Frontend Dashboard)
  */
 
-const API_BASE = 'http://127.0.0.1:8000/api';
+// Use localhost if accessed via localhost, otherwise use 127.0.0.1
+const API_HOST = window.location.hostname === 'localhost' ? 'localhost' : '127.0.0.1';
+const API_BASE = `http://${API_HOST}:8000/api`;
 
 function getToken() {
     return localStorage.getItem('lifeos_token');
@@ -100,27 +102,71 @@ export const parental = {
 
 // ── WebSocket ───────────────────────────────────────
 export function connectDashboardWS(token, onMessage) {
-    const url = `ws://127.0.0.1:8000/ws?token=${encodeURIComponent(token)}`;
+    const host = window.location.hostname === 'localhost' ? 'localhost' : '127.0.0.1';
+    const url = `ws://${host}:8000/ws?token=${encodeURIComponent(token)}`;
     let ws;
     let alive = true;
+    let reconnectAttempts = 0;
+    const maxReconnectDelay = 30000; // 30 seconds max
+    const baseDelay = 3000; // 3 seconds base
+
+    function getReconnectDelay() {
+        // Exponential backoff: 3s, 6s, 12s, 24s, 30s (capped)
+        const delay = Math.min(baseDelay * Math.pow(2, reconnectAttempts), maxReconnectDelay);
+        return delay;
+    }
 
     function connect() {
         if (!alive) return;
-        ws = new WebSocket(url);
-        ws.onopen = () => console.log('[WS] Dashboard connected');
-        ws.onmessage = (event) => {
-            try { onMessage(JSON.parse(event.data)); } catch {}
-        };
-        ws.onclose = () => {
-            if (alive) setTimeout(connect, 3000);
-        };
-        ws.onerror = () => {};
+        
+        try {
+            ws = new WebSocket(url);
+            
+            ws.onopen = () => {
+                console.log('[WS] Dashboard connected');
+                reconnectAttempts = 0; // Reset on successful connection
+            };
+            
+            ws.onmessage = (event) => {
+                try { 
+                    onMessage(JSON.parse(event.data)); 
+                } catch (err) {
+                    console.error('[WS] Message parse error:', err);
+                }
+            };
+            
+            ws.onclose = (event) => {
+                console.log(`[WS] Closed (code: ${event.code})`);
+                if (alive) {
+                    reconnectAttempts++;
+                    const delay = getReconnectDelay();
+                    console.log(`[WS] Reconnecting in ${delay/1000}s (attempt ${reconnectAttempts})...`);
+                    setTimeout(connect, delay);
+                }
+            };
+            
+            ws.onerror = (err) => {
+                console.error('[WS] Connection error:', err);
+            };
+        } catch (err) {
+            console.error('[WS] Failed to create WebSocket:', err);
+            if (alive) {
+                reconnectAttempts++;
+                setTimeout(connect, getReconnectDelay());
+            }
+        }
     }
 
     connect();
 
     return {
-        close: () => { alive = false; if (ws) ws.close(); },
+        close: () => { 
+            alive = false; 
+            if (ws) {
+                ws.close();
+                ws = null;
+            }
+        },
     };
 }
 
