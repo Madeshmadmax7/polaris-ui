@@ -184,6 +184,22 @@ export const ai = {
     getStudyPlanProgress: (planId) => request(`/ai/study-plan/${planId}/progress`),
     markChapterComplete: (planId, chapterNumber) => 
         request(`/ai/study-plan/${planId}/chapter/${chapterNumber}/complete`, { method: 'POST' }),
+    updateChapterProgress: (planId, chapterNumber, watchedSeconds) =>
+        request(`/ai/study-plan/${planId}/chapter/${chapterNumber}/update-progress`, {
+            method: 'POST',
+            body: JSON.stringify({ watched_seconds: watchedSeconds })
+        }),
+    setChapterVideo: (planId, chapterNumber, videoUrl, videoDuration, creatorName) =>
+        request(`/ai/study-plan/${planId}/chapter/${chapterNumber}/set-video`, {
+            method: 'POST',
+            body: JSON.stringify({ 
+                video_url: videoUrl, 
+                video_duration_seconds: videoDuration,
+                creator_name: creatorName 
+            })
+        }),
     submitPlanQuiz: (planId, answers) => 
         request(`/ai/study-plan/${planId}/quiz/submit`, { method: 'POST', body: JSON.stringify(answers) }),
+    getQuizAttempts: (planId) =>
+        request(`/ai/study-plan/${planId}/quiz-attempts`),
 };

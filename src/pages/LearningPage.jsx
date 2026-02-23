@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { ai } from '../api';
+import { useState, useEffect, useRef } from 'react';
+import { ai, connectDashboardWS } from '../api';
 
 export default function LearningPage() {
     const [documents, setDocuments] = useState([]);
@@ -14,6 +14,15 @@ export default function LearningPage() {
     const [quizAnswers, setQuizAnswers] = useState({});
     const [quizResult, setQuizResult] = useState(null);
     const [submittingQuiz, setSubmittingQuiz] = useState(false);
+    const [quizTerminated, setQuizTerminated] = useState(false); // Track if quiz was terminated due to tab switch
+    const [quizAttempts, setQuizAttempts] = useState([]); // Track quiz attempt history
+    const [liveActivity, setLiveActivity] = useState(null); // Live tracking from WebSocket
+    const wsRef = useRef(null); // WebSocket reference
+    
+    // Video selection state
+    const [editingChapter, setEditingChapter] = useState(null);
+    const [videoSearchQuery, setVideoSearchQuery] = useState('');
+    const [creatorName, setCreatorName] = useState('');
 
     useEffect(() => {
         async function load() {
@@ -35,7 +44,36 @@ export default function LearningPage() {
     useEffect(() => {
         if (selectedPlan) {
             loadPlanProgress(selectedPlan);
+            loadQuizAttempts(selectedPlan);
         }
+    }, [selectedPlan]);
+
+    // WebSocket for live tracking updates
+    useEffect(() => {
+        const token = localStorage.getItem('lifeos_token');
+        if (!token) return;
+
+        const conn = connectDashboardWS(token, (msg) => {
+            console.log('[Learning] WS message:', msg.type, msg.data?.domain, msg.data?.page_title);
+            if (msg.type === 'live_tracking' && msg.data) {
+                console.log('[Learning] Setting liveActivity:', msg.data);
+                setLiveActivity({ ...msg.data, receivedAt: Date.now() });
+            }
+        });
+        wsRef.current = conn;
+
+        return () => { if (conn) conn.close(); };
+    }, []);
+
+    // Auto-refresh progress every 5 seconds when viewing a plan (for real-time updates)
+    useEffect(() => {
+        if (!selectedPlan) return;
+
+        const refreshInterval = setInterval(() => {
+            loadPlanProgress(selectedPlan);
+        }, 5000); // Refresh every 5 seconds for dynamic progress bar updates
+
+        return () => clearInterval(refreshInterval);
     }, [selectedPlan]);
 
     const loadPlanProgress = async (planId) => {
@@ -44,6 +82,15 @@ export default function LearningPage() {
             setPlanProgress(progress);
         } catch (err) {
             console.error('Failed to load progress:', err);
+        }
+    };
+
+    const loadQuizAttempts = async (planId) => {
+        try {
+            const attempts = await ai.getQuizAttempts(planId);
+            setQuizAttempts(attempts.attempts || []);
+        } catch (err) {
+            console.error('Failed to load quiz attempts:', err);
         }
     };
 
@@ -99,7 +146,95 @@ export default function LearningPage() {
         setShowQuiz(true);
         setQuizAnswers({});
         setQuizResult(null);
+        setQuizTerminated(false);
+        
+        // Enter fullscreen automatically
+        setTimeout(() => {
+            const elem = document.documentElement;
+            if (elem.requestFullscreen) {
+                elem.requestFullscreen().catch(err => {
+                    console.log('Fullscreen failed:', err);
+                });
+            } else if (elem.webkitRequestFullscreen) {
+                elem.webkitRequestFullscreen();
+            } else if (elem.msRequestFullscreen) {
+                elem.msRequestFullscreen();
+            }
+        }, 100);
     };
+
+    // Auto-submit quiz if tab is switched
+    const handleQuizTermination = async (reason) => {
+        if (quizTerminated || quizResult) return; // Already terminated or completed
+        
+        setQuizTerminated(true);
+        console.log(`[Quiz Terminated] ${reason}`);
+        
+        // Exit fullscreen
+        if (document.fullscreenElement) {
+            document.exitFullscreen().catch(() => {});
+        }
+        
+        // Auto-submit with current answers
+        if (selectedPlan && !quizResult) {
+            setSubmittingQuiz(true);
+            try {
+                const result = await ai.submitPlanQuiz(selectedPlan, quizAnswers);
+                setQuizResult({
+                    ...result,
+                    terminated: true,
+                    termination_reason: reason
+                });
+                
+                // Reload quiz attempts to show new score
+                await loadQuizAttempts(selectedPlan);
+            } catch (err) {
+                alert(err.message);
+            } finally {
+                setSubmittingQuiz(false);
+            }
+        }
+    };
+
+    // Detect tab switches during quiz
+    useEffect(() => {
+        if (!showQuiz || quizResult || quizTerminated) return;
+
+        const handleVisibilityChange = () => {
+            if (document.hidden) {
+                handleQuizTermination('Tab switched - Test terminated automatically');
+            }
+        };
+
+        const handleBlur = () => {
+            handleQuizTermination('Window lost focus - Test terminated automatically');
+        };
+
+        const handleFullscreenChange = () => {
+            if (!document.fullscreenElement && !quizResult && !quizTerminated) {
+                handleQuizTermination('Exited fullscreen - Test terminated automatically');
+            }
+        };
+
+        document.addEventListener('visibilitychange', handleVisibilityChange);
+        window.addEventListener('blur', handleBlur);
+        document.addEventListener('fullscreenchange', handleFullscreenChange);
+        document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
+
+        return () => {
+            document.removeEventListener('visibilitychange', handleVisibilityChange);
+            window.removeEventListener('blur', handleBlur);
+            document.removeEventListener('fullscreenchange', handleFullscreenChange);
+            document.removeEventListener('webkitfullscreenchange', handleFullscreenChange);
+        };
+    }, [showQuiz, quizResult, quizTerminated, selectedPlan, quizAnswers]);
+
+    // Exit fullscreen when quiz ends
+    useEffect(() => {
+        if (quizResult && document.fullscreenElement) {
+            document.exitFullscreen().catch(() => {});
+        }
+    }, [quizResult]);
 
     const handleQuizAnswer = (questionIdx, optionIdx) => {
         setQuizAnswers({ ...quizAnswers, [questionIdx]: optionIdx });
@@ -120,11 +255,28 @@ export default function LearningPage() {
         try {
             const result = await ai.submitPlanQuiz(selectedPlan, quizAnswers);
             setQuizResult(result);
+            
+            // Reload quiz attempts to show new score
+            await loadQuizAttempts(selectedPlan);
+            
+            // Exit fullscreen after completion
+            if (document.fullscreenElement) {
+                document.exitFullscreen().catch(() => {});
+            }
         } catch (err) {
             alert(err.message);
         } finally {
             setSubmittingQuiz(false);
         }
+    };
+    
+    const formatDuration = (seconds) => {
+        if (seconds < 60) return `${seconds}s`;
+        const minutes = Math.floor(seconds / 60);
+        if (minutes < 60) return `${minutes} min`;
+        const hours = Math.floor(minutes / 60);
+        const mins = minutes % 60;
+        return mins > 0 ? `${hours}h ${mins}min` : `${hours}h`;
     };
 
     if (loading) {
@@ -134,7 +286,9 @@ export default function LearningPage() {
     const currentPlan = studyPlans.find(p => p.id === selectedPlan);
     const chapters = currentPlan?.plan_data?.chapters || [];
     const quiz = currentPlan?.plan_data?.quiz || [];
-    const isQuizUnlocked = currentPlan?.quiz_unlocked || false;
+    
+    // Check quiz unlock status from progress endpoint (auto-unlocks if all chapters done)
+    const isQuizUnlocked = planProgress?.quiz_unlocked || currentPlan?.quiz_unlocked || false;
 
     return (
         <div>
@@ -296,12 +450,42 @@ export default function LearningPage() {
                     {!showQuiz && !quizResult && chapters.length > 0 && (
                         <div style={{ padding: '0 16px 16px 16px' }}>
                             <h3 style={{ marginBottom: '16px', fontSize: '18px' }}>📺 Video Chapters</h3>
+                            
+                            {/* Live Tracking Indicator */}
+                            {liveActivity && liveActivity.domain && (liveActivity.domain === 'youtube.com' || liveActivity.domain === 'youtu.be') && liveActivity.page_title && (
+                                <div style={{
+                                    padding: '12px 16px',
+                                    background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(139, 92, 246, 0.1))',
+                                    border: '2px solid var(--color-primary)',
+                                    borderRadius: 'var(--radius-md)',
+                                    marginBottom: '16px',
+                                    animation: 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite'
+                                }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+                                        <span style={{ fontSize: '12px', color: '#ef4444', fontWeight: 600 }}>🔴 LIVE</span>
+                                        <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Currently Watching</span>
+                                    </div>
+                                    <div style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '2px' }}>
+                                        {liveActivity.page_title}
+                                    </div>
+                                    <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
+                                        Category: <span className={`badge badge-${liveActivity.category || 'neutral'}`} style={{ fontSize: '10px', padding: '2px 6px' }}>
+                                            {liveActivity.category || 'neutral'}
+                                        </span>
+                                    </div>
+                                </div>
+                            )}
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                                 {chapters.map((chapter) => {
                                     const progress = planProgress?.chapters?.find(
                                         c => c.chapter_index === chapter.chapter_number
                                     );
                                     const isCompleted = progress?.is_completed || false;
+                                    const progressPercentage = progress?.progress_percentage || 0;
+                                    const watchedSeconds = progress?.watched_seconds || 0;
+                                    const videoDuration = progress?.video_duration_seconds || 0;
+                                    const hasVideo = progress?.youtube_url && videoDuration > 0;
+                                    const searchQuery = chapter.youtube_search_query || chapter.title.toLowerCase().replace(/ /g, '+');
 
                                     return (
                                         <div
@@ -327,6 +511,58 @@ export default function LearningPage() {
                                                     <p style={{ fontSize: '14px', color: 'var(--text-muted)', lineHeight: '1.5' }}>
                                                         {chapter.description}
                                                     </p>
+                                                    
+                                                    {/* Progress Bar */}
+                                                    {hasVideo ? (
+                                                        <div style={{ marginTop: '12px' }}>
+                                                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
+                                                                <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
+                                                                    {formatDuration(watchedSeconds)} / {formatDuration(videoDuration)}
+                                                                </span>
+                                                                <span style={{ fontSize: '12px', fontWeight: 600, color: 'var(--color-primary)' }}>
+                                                                    {Math.round(progressPercentage)}%
+                                                                </span>
+                                                            </div>
+                                                            <div style={{
+                                                                width: '100%',
+                                                                height: '8px',
+                                                                background: 'var(--bg-elevated)',
+                                                                borderRadius: '4px',
+                                                                overflow: 'hidden'
+                                                            }}>
+                                                                <div style={{
+                                                                    width: `${progressPercentage}%`,
+                                                                    height: '100%',
+                                                                    background: 'linear-gradient(90deg, var(--color-primary), var(--color-secondary))',
+                                                                    transition: 'width 0.3s ease'
+                                                                }}></div>
+                                                            </div>
+                                                            {progress?.creator_name && (
+                                                                <p style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '4px' }}>
+                                                                    📹 {progress.creator_name}
+                                                                </p>
+                                                            )}
+                                                        </div>
+                                                    ) : (
+                                                        <div style={{ marginTop: '12px' }}>
+                                                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
+                                                                <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
+                                                                    Not started
+                                                                </span>
+                                                                <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
+                                                                    0%
+                                                                </span>
+                                                            </div>
+                                                            <div style={{
+                                                                width: '100%',
+                                                                height: '8px',
+                                                                background: 'var(--bg-elevated)',
+                                                                borderRadius: '4px',
+                                                                overflow: 'hidden'
+                                                            }}></div>
+                                                        </div>
+                                                    )}
+                                                    
                                                     {chapter.key_topics && chapter.key_topics.length > 0 && (
                                                         <div style={{ marginTop: '8px', display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
                                                             {chapter.key_topics.map((topic, idx) => (
@@ -345,33 +581,63 @@ export default function LearningPage() {
                                                             ))}
                                                         </div>
                                                     )}
-                                                    {chapter.duration_estimate && (
-                                                        <p style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '8px' }}>
-                                                            ⏱️ {chapter.duration_estimate}
-                                                        </p>
-                                                    )}
                                                 </div>
                                             </div>
 
-                                            <div style={{ display: 'flex', gap: '8px', marginTop: '12px' }}>
-                                                <a
-                                                    href={chapter.youtube_url}
-                                                    target="_blank"
-                                                    rel="noopener noreferrer"
-                                                    className="btn btn-primary"
-                                                    style={{ flex: 1 }}
-                                                >
-                                                    ▶️ Watch on YouTube
-                                                </a>
-                                                {!isCompleted && (
+                                            <div style={{ display: 'flex', gap: '8px', marginTop: '12px', flexWrap: 'wrap' }}>
+                                                {hasVideo ? (
+                                                    <>
+                                                        <a
+                                                            href={progress.youtube_url}
+                                                            target="_blank"
+                                                            rel="noopener noreferrer"
+                                                            className="btn btn-primary"
+                                                            style={{ flex: 1 }}
+                                                        >
+                                                            ▶️ Continue Watching
+                                                        </a>
+                                                        <a
+                                                            href={`https://www.youtube.com/results?search_query=${searchQuery}`}
+                                                            target="_blank"
+                                                            rel="noopener noreferrer"
+                                                            className="btn btn-secondary"
+                                                        >
+                                                            🔍 Find Different Video
+                                                        </a>
+                                                    </>
+                                                ) : (
+                                                    <a
+                                                        href={`https://www.youtube.com/results?search_query=${searchQuery}`}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        className="btn btn-primary"
+                                                        style={{ flex: 1 }}
+                                                    >
+                                                        🔍 Search on YouTube
+                                                    </a>
+                                                )}
+                                                {!isCompleted && hasVideo && progressPercentage >= 90 && (
                                                     <button
                                                         onClick={() => handleMarkComplete(chapter.chapter_number)}
                                                         className="btn btn-secondary"
                                                     >
-                                                        Mark Complete
+                                                        ✓ Mark Complete
                                                     </button>
                                                 )}
                                             </div>
+                                            
+                                            {hasVideo && (
+                                                <div style={{ 
+                                                    marginTop: '12px', 
+                                                    padding: '10px', 
+                                                    background: 'var(--bg-elevated)',
+                                                    borderRadius: 'var(--radius-sm)',
+                                                    fontSize: '12px',
+                                                    color: 'var(--text-muted)'
+                                                }}>
+                                                    💡 Progress tracked automatically as you watch. Switch videos anytime!
+                                                </div>
+                                            )}
                                         </div>
                                     );
                                 })}
@@ -388,8 +654,54 @@ export default function LearningPage() {
                                     <p style={{ fontSize: '14px', color: 'var(--text-muted)', marginBottom: '16px' }}>
                                         Test your understanding with {quiz.length} multiple-choice questions
                                     </p>
+                                    
+                                    {/* Quiz Attempt History */}
+                                    {quizAttempts.length > 0 && (
+                                        <div style={{ 
+                                            marginBottom: '16px', 
+                                            padding: '12px', 
+                                            background: 'var(--bg-card)', 
+                                            borderRadius: 'var(--radius-md)',
+                                            border: '1px solid var(--border-subtle)'
+                                        }}>
+                                            <h4 style={{ fontSize: '14px', fontWeight: 600, marginBottom: '8px', color: 'var(--text-secondary)' }}>
+                                                📊 Previous Attempts ({quizAttempts.length})
+                                            </h4>
+                                            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                                                {quizAttempts.map((attempt, idx) => {
+                                                    const ordinal = (n) => {
+                                                        const s = ['th', 'st', 'nd', 'rd'];
+                                                        const v = n % 100;
+                                                        return n + (s[(v - 20) % 10] || s[v] || s[0]);
+                                                    };
+                                                    
+                                                    return (
+                                                        <div key={idx} style={{ 
+                                                            display: 'flex', 
+                                                            justifyContent: 'space-between',
+                                                            padding: '8px 12px',
+                                                            background: 'var(--bg-primary)',
+                                                            borderRadius: 'var(--radius-sm)',
+                                                            fontSize: '13px'
+                                                        }}>
+                                                            <span style={{ color: 'var(--text-secondary)' }}>
+                                                                {ordinal(attempt.attempt_number)} attempt
+                                                            </span>
+                                                            <span style={{ 
+                                                                fontWeight: 600,
+                                                                color: attempt.score >= 70 ? 'var(--color-success)' : 'var(--color-warning)'
+                                                            }}>
+                                                                {attempt.correct_answers}/{attempt.total_questions} ({attempt.score.toFixed(0)}%)
+                                                            </span>
+                                                        </div>
+                                                    );
+                                                })}
+                                            </div>
+                                        </div>
+                                    )}
+                                    
                                     <button onClick={handleStartQuiz} className="btn btn-primary">
-                                        Start Quiz
+                                        {quizAttempts.length > 0 ? 'Retake Quiz' : 'Start Quiz'}
                                     </button>
                                 </div>
                             ) : (
@@ -405,7 +717,19 @@ export default function LearningPage() {
 
                     {/* Quiz Questions */}
                     {showQuiz && !quizResult && (
-                        <div style={{ padding: '16px' }}>
+                        <div style={{ padding: '16px', minHeight: '100vh', background: 'var(--bg-card)' }}>
+                            <div style={{ 
+                                background: 'var(--color-warning-alpha)', 
+                                padding: '12px', 
+                                borderRadius: 'var(--radius-md)', 
+                                marginBottom: '20px',
+                                border: '2px solid var(--color-warning)',
+                                textAlign: 'center'
+                            }}>
+                                <p style={{ fontSize: '14px', fontWeight: 600, color: 'var(--color-warning)' }}>
+                                    ⚠️ FULLSCREEN QUIZ MODE - Do not switch tabs or exit fullscreen. Test will terminate automatically if you do.
+                                </p>
+                            </div>
                             <h3 style={{ marginBottom: '20px', fontSize: '18px' }}>🎯 Quiz Time!</h3>
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
                                 {quiz.map((question, qIdx) => (
@@ -464,6 +788,19 @@ export default function LearningPage() {
                     {/* Quiz Results */}
                     {quizResult && (
                         <div style={{ padding: '16px' }}>
+                            {quizResult.terminated && (
+                                <div style={{
+                                    padding: '16px',
+                                    background: 'var(--color-danger-alpha)',
+                                    borderRadius: 'var(--radius-md)',
+                                    marginBottom: '24px',
+                                    border: '2px solid var(--color-danger)',
+                                    textAlign: 'center'
+                                }}>
+                                    <h3 style={{ fontSize: '18px', marginBottom: '8px', color: 'var(--color-danger)' }}>⚠️ Test Terminated</h3>
+                                    <p style={{ fontSize: '14px' }}>{quizResult.termination_reason}</p>
+                                </div>
+                            )}
                             <div style={{
                                 padding: '24px',
                                 background: 'var(--bg-elevated)',
