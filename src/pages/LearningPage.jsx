@@ -24,6 +24,31 @@ export default function LearningPage() {
     const [videoSearchQuery, setVideoSearchQuery] = useState('');
     const [creatorName, setCreatorName] = useState('');
 
+    /**
+     * Open YouTube search for a chapter and set it as pending assignment.
+     * The extension will auto-assign the next video the user watches to this chapter.
+     */
+    const handleSearchYouTube = async (planId, chapterNumber, searchQuery) => {
+        try {
+            // Tell backend this chapter is pending video assignment
+            await ai.setPendingChapter(planId, chapterNumber);
+            
+            // Also tell extension directly via content script (if running on this page)
+            window.postMessage({
+                type: 'LIFEOS_SET_PENDING_CHAPTER',
+                data: {
+                    plan_id: planId,
+                    chapter_index: chapterNumber,
+                }
+            }, '*');
+        } catch (e) {
+            console.debug('[Learning] Failed to set pending chapter:', e.message);
+        }
+        
+        // Open YouTube search in new tab
+        window.open(`https://www.youtube.com/results?search_query=${searchQuery}`, '_blank');
+    };
+
     useEffect(() => {
         async function load() {
             try {
@@ -229,7 +254,6 @@ export default function LearningPage() {
         };
     }, [showQuiz, quizResult, quizTerminated, selectedPlan, quizAnswers]);
 
-    // Exit fullscreen when quiz ends
     useEffect(() => {
         if (quizResult && document.fullscreenElement) {
             document.exitFullscreen().catch(() => {});
@@ -267,6 +291,18 @@ export default function LearningPage() {
             alert(err.message);
         } finally {
             setSubmittingQuiz(false);
+        }
+    };
+
+    const handleResetChapter = async (chapterNumber) => {
+        if (!selectedPlan) return;
+        if (!confirm(`Reset Chapter ${chapterNumber}? This will clear all progress, video assignment, and completion status. You'll need to re-watch a video.`)) return;
+        try {
+            await ai.resetChapter(selectedPlan, chapterNumber);
+            await loadPlanProgress(selectedPlan);
+            alert(`✓ Chapter ${chapterNumber} has been reset`);
+        } catch (err) {
+            alert(err.message);
         }
     };
     
@@ -481,7 +517,7 @@ export default function LearningPage() {
                                         c => c.chapter_index === chapter.chapter_number
                                     );
                                     const isCompleted = progress?.is_completed || false;
-                                    const progressPercentage = progress?.progress_percentage || 0;
+                                    const progressPercentage = Math.min(progress?.progress_percentage || 0, 100);
                                     const watchedSeconds = progress?.watched_seconds || 0;
                                     const videoDuration = progress?.video_duration_seconds || 0;
                                     const hasVideo = progress?.youtube_url && videoDuration > 0;
@@ -506,8 +542,13 @@ export default function LearningPage() {
                                                         {isCompleted && <span style={{ fontSize: '20px' }}>✓</span>}
                                                     </div>
                                                     <h4 style={{ margin: '8px 0', fontSize: '16px', fontWeight: 600 }}>
-                                                        {chapter.title}
+                                                        {progress?.youtube_title || chapter.title}
                                                     </h4>
+                                                    {progress?.youtube_title && progress.youtube_title !== chapter.title && (
+                                                        <p style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '-4px', marginBottom: '4px' }}>
+                                                            📋 Chapter: {chapter.title}
+                                                        </p>
+                                                    )}
                                                     <p style={{ fontSize: '14px', color: 'var(--text-muted)', lineHeight: '1.5' }}>
                                                         {chapter.description}
                                                     </p>
@@ -531,7 +572,7 @@ export default function LearningPage() {
                                                                 overflow: 'hidden'
                                                             }}>
                                                                 <div style={{
-                                                                    width: `${progressPercentage}%`,
+                                                                width: `${Math.min(progressPercentage, 100)}%`,
                                                                     height: '100%',
                                                                     background: 'linear-gradient(90deg, var(--color-primary), var(--color-secondary))',
                                                                     transition: 'width 0.3s ease'
@@ -594,27 +635,23 @@ export default function LearningPage() {
                                                             className="btn btn-primary"
                                                             style={{ flex: 1 }}
                                                         >
-                                                            ▶️ Continue Watching
+                                                            ▶️ {isCompleted ? 'Re-watch' : 'Continue Watching'}
                                                         </a>
-                                                        <a
-                                                            href={`https://www.youtube.com/results?search_query=${searchQuery}`}
-                                                            target="_blank"
-                                                            rel="noopener noreferrer"
+                                                        <button
+                                                            onClick={() => handleSearchYouTube(selectedPlan, chapter.chapter_number, searchQuery)}
                                                             className="btn btn-secondary"
                                                         >
                                                             🔍 Find Different Video
-                                                        </a>
+                                                        </button>
                                                     </>
                                                 ) : (
-                                                    <a
-                                                        href={`https://www.youtube.com/results?search_query=${searchQuery}`}
-                                                        target="_blank"
-                                                        rel="noopener noreferrer"
+                                                    <button
+                                                        onClick={() => handleSearchYouTube(selectedPlan, chapter.chapter_number, searchQuery)}
                                                         className="btn btn-primary"
                                                         style={{ flex: 1 }}
                                                     >
                                                         🔍 Search on YouTube
-                                                    </a>
+                                                    </button>
                                                 )}
                                                 {!isCompleted && hasVideo && progressPercentage >= 90 && (
                                                     <button
@@ -622,6 +659,22 @@ export default function LearningPage() {
                                                         className="btn btn-secondary"
                                                     >
                                                         ✓ Mark Complete
+                                                    </button>
+                                                )}
+                                                {hasVideo && (
+                                                    <button
+                                                        onClick={() => handleResetChapter(chapter.chapter_number)}
+                                                        className="btn btn-sm"
+                                                        title="Reset this chapter's progress"
+                                                        style={{ 
+                                                            padding: '6px 10px', 
+                                                            fontSize: '12px', 
+                                                            background: 'transparent', 
+                                                            border: '1px solid var(--border-subtle)',
+                                                            color: 'var(--text-muted)',
+                                                        }}
+                                                    >
+                                                        🔄
                                                     </button>
                                                 )}
                                             </div>

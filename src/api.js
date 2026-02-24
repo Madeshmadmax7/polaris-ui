@@ -81,12 +81,17 @@ export const tracking = {
     getLogs: (params) => request(`/tracking/logs?${new URLSearchParams(params)}`),
     getDomains: (params) => request(`/tracking/domains?${new URLSearchParams(params)}`),
     setCategory: (data) => request('/tracking/categories', { method: 'POST', body: JSON.stringify(data) }),
+    resetToday: () => request('/tracking/reset-today', { method: 'DELETE' }),
 };
 
 // ── Productivity ────────────────────────────────────────
 export const productivity = {
     getToday: () => request('/productivity/today'),
     getTrend: (days = 7) => request(`/productivity/trend?days=${days}`),
+    getDashboardStats: (params = {}) => {
+        const query = new URLSearchParams(params).toString();
+        return request(`/productivity/dashboard-stats${query ? '?' + query : ''}`);
+    },
 };
 
 // ── Parental ────────────────────────────────────────────
@@ -198,6 +203,13 @@ export const ai = {
                 creator_name: creatorName 
             })
         }),
+    setPendingChapter: (planId, chapterIndex) =>
+        request('/ai/set-pending-chapter', {
+            method: 'POST',
+            body: JSON.stringify({ plan_id: planId, chapter_index: chapterIndex })
+        }),
+    resetChapter: (planId, chapterNumber) =>
+        request(`/ai/study-plan/${planId}/chapter/${chapterNumber}/reset`, { method: 'POST' }),
     submitPlanQuiz: (planId, answers) => 
         request(`/ai/study-plan/${planId}/quiz/submit`, { method: 'POST', body: JSON.stringify(answers) }),
     getQuizAttempts: (planId) =>

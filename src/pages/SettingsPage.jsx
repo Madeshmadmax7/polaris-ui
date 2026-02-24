@@ -8,6 +8,7 @@ export default function SettingsPage() {
     const [newDomain, setNewDomain] = useState('');
     const [newCategory, setNewCategory] = useState('productive');
     const [blockingMode, setBlockingMode] = useState('hard'); // hard | soft
+    const [resettingToday, setResettingToday] = useState(false);
 
     useEffect(() => {
         // Fetch current mode from extension
@@ -147,6 +148,35 @@ export default function SettingsPage() {
                     <li>Select the <code>extension/</code> folder</li>
                     <li>Sign in via the extension popup</li>
                 </ol>
+            </div>
+
+            {/* Data Management */}
+            <div className="card" style={{ marginTop: '20px' }}>
+                <div className="card-header">
+                    <div className="card-title">🗑️ Data Management</div>
+                </div>
+                <p style={{ color: 'var(--text-secondary)', lineHeight: '1.7', marginBottom: '16px' }}>
+                    Reset today's tracking data to start fresh. This removes all activity logs and daily summary for today.
+                </p>
+                <button
+                    className="btn btn-sm"
+                    style={{ background: 'var(--color-danger, #ef4444)', color: 'white', border: 'none' }}
+                    disabled={resettingToday}
+                    onClick={async () => {
+                        if (!confirm('Are you sure? This will delete ALL tracking data for today (activity logs, productivity score, etc). This cannot be undone.')) return;
+                        setResettingToday(true);
+                        try {
+                            const result = await tracking.resetToday();
+                            alert(`✓ ${result.message}`);
+                        } catch (err) {
+                            alert('Failed: ' + err.message);
+                        } finally {
+                            setResettingToday(false);
+                        }
+                    }}
+                >
+                    {resettingToday ? '⏳ Resetting...' : '🗑️ Reset Today\'s Tracking Data'}
+                </button>
             </div>
         </div>
     );
