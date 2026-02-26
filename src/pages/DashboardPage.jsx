@@ -1,7 +1,25 @@
-import { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../App';
 import { productivity, tracking, connectDashboardWS } from '../api';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
+import { 
+    Activity, 
+    BarChart3, 
+    Clock, 
+    TrendingUp, 
+    TrendingDown, 
+    Minus, 
+    Monitor, 
+    Globe, 
+    ChevronDown, 
+    ChevronUp, 
+    Youtube, 
+    MessageSquare, 
+    Bot,
+    GraduationCap,
+    CheckCircle2,
+    Lock
+} from 'lucide-react';
 
 function formatSeconds(secs) {
     if (!secs || secs <= 0) return '0s';
@@ -14,9 +32,9 @@ function formatSeconds(secs) {
 }
 
 const CATEGORY_COLORS = {
-    productive: '#00e68a',
-    neutral: '#60a5fa',
-    distracting: '#ff6b6b',
+    productive: '#ffffff',
+    neutral: '#71717a',
+    distracting: '#3f3f46',
 };
 
 export default function DashboardPage() {
@@ -53,7 +71,7 @@ export default function DashboardPage() {
 
     // WebSocket for live tracking updates
     useEffect(() => {
-        const token = localStorage.getItem('lifeos_token');
+        const token = localStorage.getItem('polaris_token');
         if (!token) return;
 
         const conn = connectDashboardWS(token, (msg) => {
@@ -84,8 +102,11 @@ export default function DashboardPage() {
 
     if (loading) {
         return (
-            <div className="loading-spinner">
-                <div className="spinner"></div>
+            <div className="fixed inset-0 flex items-center justify-center bg-black z-[1000]">
+                <div className="flex flex-col items-center gap-6">
+                    <div className="w-16 h-16 border-4 border-white/5 border-t-white rounded-full animate-spin"></div>
+                    <span className="text-[10px] font-medium uppercase tracking-[0.5em] text-zinc-500">Authenticating Data Stream</span>
+                </div>
             </div>
         );
     }
@@ -99,233 +120,229 @@ export default function DashboardPage() {
 
     // Pie chart data
     const pieData = [
-        { name: 'Productive', value: catSummary.productive?.seconds || 0, color: CATEGORY_COLORS.productive },
-        { name: 'Neutral', value: catSummary.neutral?.seconds || 0, color: CATEGORY_COLORS.neutral },
-        { name: 'Distracting', value: catSummary.distracting?.seconds || 0, color: CATEGORY_COLORS.distracting },
+        { name: 'Productive', value: catSummary.productive?.seconds || 0, color: '#000000' },
+        { name: 'Neutral', value: catSummary.neutral?.seconds || 0, color: '#a1a1aa' },
+        { name: 'Distracting', value: catSummary.distracting?.seconds || 0, color: '#e4e4e7' },
     ].filter(d => d.value > 0);
 
     return (
-        <div>
-            <div className="page-header">
-                <h1>Good {new Date().getHours() < 12 ? 'morning' : new Date().getHours() < 17 ? 'afternoon' : 'evening'}, {user?.username} 👋</h1>
-                <p>Here's your digital well-being overview</p>
+        <div className="container mx-auto px-6 py-8 max-w-7xl animate-in fade-in slide-in-from-bottom-4 duration-700">
+            <div className="mb-10 flex flex-col md:flex-row md:items-end justify-between gap-6 px-1 font-outfit">
+                <div>
+                    <div className="flex items-center gap-2 mb-3">
+                        <div className="w-1 h-1 rounded-full bg-white/20"></div>
+                        <span className="text-[10px] font-medium uppercase tracking-[0.2em] text-zinc-500">Core / Dashboard</span>
+                    </div>
+                    <h1 className="text-3xl font-light tracking-tight text-white">
+                        Welcome, <span className="font-semibold">{user?.username}</span>
+                    </h1>
+                </div>
+                <div className="text-left md:text-right">
+                    <div className="text-[10px] font-medium uppercase tracking-widest text-zinc-500 mb-1">Active Session</div>
+                    <div className="text-2xl font-light text-white tabular-nums">
+                        {new Date().toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit' })}
+                    </div>
+                </div>
             </div>
 
             {/* Live Activity Card */}
             {liveActivity && liveActivity.domain && (
-                <div className="stat-card" style={{ borderLeft: '3px solid #7c5cff', marginBottom: '20px' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div className="bg-zinc-900 border border-white/5 p-8 rounded-[40px] mb-12 flex flex-col md:flex-row items-center justify-between shadow-3xl relative overflow-hidden group">
+                    <div className="absolute top-0 right-0 w-64 h-64 bg-white/[0.02] rounded-full -mr-32 -mt-32 blur-3xl group-hover:bg-white/[0.05] transition-all duration-1000"></div>
+                    <div className="flex items-center gap-6 relative z-10">
+                        <div className="w-14 h-14 bg-white/5 border border-white/10 text-white rounded-[20px] flex items-center justify-center animate-pulse">
+                            <Activity size={24} />
+                        </div>
                         <div>
-                            <div className="stat-label">🔴 Live Activity</div>
-                            <div className="stat-value" style={{ fontSize: '18px' }}>
+                            <div className="text-[9px] uppercase tracking-[0.4em] text-zinc-600 font-bold mb-2">Real-time Stream</div>
+                            <div className="text-xl font-medium truncate max-w-xl text-white tracking-tight">
                                 {liveActivity.page_title || liveActivity.domain}
                             </div>
-                            {liveActivity.page_title && (
-                                <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '4px' }}>
-                                    {liveActivity.domain}
-                                </div>
-                            )}
+                            <div className="text-[10px] text-zinc-500 font-medium uppercase tracking-widest mt-1 opacity-60">{liveActivity.domain}</div>
                         </div>
-                        <span className={`badge badge-${liveActivity.category || 'neutral'}`}>
-                            {liveActivity.category || 'neutral'}
-                        </span>
+                    </div>
+                    <div className="mt-6 md:mt-0 px-6 py-2 bg-white text-black rounded-full text-[9px] font-bold uppercase tracking-[0.2em] relative z-10 hover:opacity-90 transition-all">
+                        {liveActivity.category || 'neutral'}
                     </div>
                 </div>
             )}
 
             {/* Top Stat Cards */}
-            <div className="stat-grid">
-                <div className="stat-card primary">
-                    <div className="stat-label">Productivity Score</div>
-                    <div className="stat-value">{Math.round(score)}</div>
-                    {trend && (
-                        <div className={`stat-change ${trend.trend === 'improving' ? 'positive' : trend.trend === 'declining' ? 'negative' : ''}`}>
-                            {trend.trend === 'improving' ? '↑' : trend.trend === 'declining' ? '↓' : '→'} {trend.trend}
-                        </div>
-                    )}
-                </div>
-
-                <div className="stat-card success">
-                    <div className="stat-label">Focus Factor</div>
-                    <div className="stat-value">{(focusFactor * 100).toFixed(0)}%</div>
-                    <div className="stat-change">{today?.tab_switches || 0} tab switches</div>
-                </div>
-
-                <div className="stat-card info">
-                    <div className="stat-label">Total Active Time</div>
-                    <div className="stat-value">{formatSeconds(totalSeconds)}</div>
-                    <div className="stat-change" style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
-                        {totalSeconds.toLocaleString()}s total
-                    </div>
-                </div>
-
-                <div className="stat-card warning">
-                    <div className="stat-label">Distracting Time</div>
-                    <div className="stat-value" style={{ color: '#f87171' }}>
-                        {catSummary.distracting?.formatted_time || '0s'}
-                    </div>
-                    <div className="stat-change" style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
-                        {catSummary.distracting?.percentage || 0}% of total
-                    </div>
-                </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12 px-1">
+                <StatCard 
+                    label="Productivity Index" 
+                    value={Math.round(score)} 
+                    icon={<TrendingUp size={20} />} 
+                    trend={trend}
+                />
+                <StatCard 
+                    label="Focus Resonance" 
+                    value={`${(focusFactor * 100).toFixed(0)}%`} 
+                    icon={<Activity size={20} />} 
+                    subvalue={`${today?.tab_switches || 0} switches`}
+                />
+                <StatCard 
+                    label="Active Horizon" 
+                    value={formatSeconds(totalSeconds)} 
+                    icon={<Clock size={20} />} 
+                />
+                <StatCard 
+                    label="Distraction Leakage" 
+                    value={catSummary.distracting?.formatted_time || '0s'} 
+                    icon={<Monitor size={20} />} 
+                    subvalue={`${catSummary.distracting?.percentage || 0}% of cycle`}
+                    isAlert={catSummary.distracting?.percentage > 30}
+                />
             </div>
 
-            {/* Category Breakdown Stacked Bar */}
-            {totalSeconds > 0 && (
-                <div className="card" style={{ marginTop: '20px' }}>
-                    <div className="card-header">
-                        <div className="card-title">⏱️ Time Distribution</div>
-                        <div className="card-subtitle">{formatSeconds(totalSeconds)} total today</div>
-                    </div>
-                    <div style={{ padding: '0 16px 16px 16px' }}>
-                        <div style={{ display: 'flex', height: '28px', borderRadius: '8px', overflow: 'hidden', marginBottom: '16px' }}>
-                            {catSummary.productive?.seconds > 0 && (
-                                <div style={{ width: `${catSummary.productive.percentage}%`, background: CATEGORY_COLORS.productive, minWidth: '2px' }} title={`Productive: ${catSummary.productive.formatted_time}`} />
-                            )}
-                            {catSummary.neutral?.seconds > 0 && (
-                                <div style={{ width: `${catSummary.neutral.percentage}%`, background: CATEGORY_COLORS.neutral, minWidth: '2px' }} title={`Neutral: ${catSummary.neutral.formatted_time}`} />
-                            )}
-                            {catSummary.distracting?.seconds > 0 && (
-                                <div style={{ width: `${catSummary.distracting.percentage}%`, background: CATEGORY_COLORS.distracting, minWidth: '2px' }} title={`Distracting: ${catSummary.distracting.formatted_time}`} />
-                            )}
-                        </div>
-                        <div style={{ display: 'flex', gap: '24px', flexWrap: 'wrap' }}>
-                            {Object.entries(catSummary).map(([cat, data]) => (
-                                <div key={cat} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                    <div style={{ width: '12px', height: '12px', borderRadius: '3px', background: CATEGORY_COLORS[cat] }} />
-                                    <span style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>
-                                        {cat.charAt(0).toUpperCase() + cat.slice(1)}: <strong>{data.formatted_time}</strong> ({data.percentage}%)
-                                    </span>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-                </div>
-            )}
-
-            <div className="grid-2">
-                {/* Productivity Trend Chart */}
-                <div className="card">
-                    <div className="card-header">
+            {/* Main Visualizations */}
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 mb-12">
+                {/* Trend Chart */}
+                <div className="lg:col-span-8 bg-black border border-white/10 rounded-[40px] p-10 shadow-2xl">
+                    <div className="flex items-center justify-between mb-12">
                         <div>
-                            <div className="card-title">📈 Productivity Trend</div>
-                            <div className="card-subtitle">Last 14 days</div>
+                            <h3 className="text-xl font-semibold tracking-tight text-white mb-2">Trajectory Analysis</h3>
+                            <p className="text-zinc-500 text-[10px] font-medium uppercase tracking-[0.2em]">14 Cycle Performance Mapping</p>
                         </div>
-                        <span className={`badge badge-${trend?.trend === 'improving' ? 'productive' : trend?.trend === 'declining' ? 'distracting' : 'neutral'}`}>
-                            {trend?.trend || 'stable'}
-                        </span>
+                        <div className="p-3 bg-white/5 rounded-2xl border border-white/5">
+                           <BarChart3 size={20} className="text-zinc-400" />
+                        </div>
                     </div>
 
-                    {trend?.scores?.length > 0 ? (
-                        <ResponsiveContainer width="100%" height={220}>
-                            <AreaChart data={trend.scores}>
-                                <defs>
-                                    <linearGradient id="scoreGrad" x1="0" y1="0" x2="0" y2="1">
-                                        <stop offset="0%" stopColor="#7c5cff" stopOpacity={0.3} />
-                                        <stop offset="100%" stopColor="#7c5cff" stopOpacity={0} />
-                                    </linearGradient>
-                                </defs>
-                                <CartesianGrid strokeDasharray="3 3" />
-                                <XAxis dataKey="date" tick={{ fontSize: 11 }} />
-                                <YAxis domain={[0, 100]} tick={{ fontSize: 11 }} />
-                                <Tooltip
-                                    contentStyle={{
-                                        background: '#1e1e3a',
-                                        border: '1px solid rgba(255,255,255,0.1)',
-                                        borderRadius: '8px',
-                                        color: '#eeeeff',
-                                    }}
-                                />
-                                <Area
-                                    type="monotone"
-                                    dataKey="productivity_score"
-                                    stroke="#7c5cff"
-                                    fill="url(#scoreGrad)"
-                                    strokeWidth={2}
-                                />
-                            </AreaChart>
-                        </ResponsiveContainer>
-                    ) : (
-                        <div className="empty-state">
-                            <h3>No data yet</h3>
-                            <p>Install the extension and start browsing to see your productivity trend</p>
-                        </div>
-                    )}
+                    <div className="h-[350px]">
+                        {trend?.scores?.length > 0 ? (
+                            <ResponsiveContainer width="100%" height="100%">
+                                <AreaChart data={trend.scores}>
+                                    <defs>
+                                        <linearGradient id="scoreGrad" x1="0" y1="0" x2="0" y2="1">
+                                            <stop offset="0%" stopColor="#fff" stopOpacity={0.1} />
+                                            <stop offset="100%" stopColor="#fff" stopOpacity={0} />
+                                        </linearGradient>
+                                    </defs>
+                                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#ffffff08" />
+                                    <XAxis dataKey="date" tick={{ fontSize: 9, fontWeight: 500, fill: '#71717a' }} axisLine={false} tickLine={false} />
+                                    <YAxis domain={[0, 100]} tick={{ fontSize: 9, fontWeight: 500, fill: '#71717a' }} axisLine={false} tickLine={false} />
+                                    <Tooltip
+                                        contentStyle={{
+                                            background: '#000',
+                                            border: '1px solid rgba(255,255,255,0.1)',
+                                            borderRadius: '16px',
+                                            color: '#fff',
+                                            padding: '12px'
+                                        }}
+                                        itemStyle={{ color: '#fff', fontWeight: 500, textTransform: 'uppercase', fontSize: '10px' }}
+                                        labelStyle={{ color: '#71717a', fontWeight: 500, marginBottom: '6px', fontSize: '9px' }}
+                                    />
+                                    <Area
+                                        type="monotone"
+                                        dataKey="productivity_score"
+                                        stroke="#fff"
+                                        fill="url(#scoreGrad)"
+                                        strokeWidth={3}
+                                        dot={{ r: 0 }}
+                                        activeDot={{ r: 6, fill: '#fff', stroke: '#000', strokeWidth: 2 }}
+                                    />
+                                </AreaChart>
+                            </ResponsiveContainer>
+                        ) : (
+                            <div className="h-full flex flex-col items-center justify-center text-zinc-800">
+                                <BarChart3 size={48} strokeWidth={1} />
+                                <p className="text-[10px] font-medium uppercase tracking-[0.5em] mt-6 text-zinc-600">Awaiting Historical Baseline</p>
+                            </div>
+                        )}
+                    </div>
                 </div>
 
-                {/* Category Pie Chart */}
-                <div className="card">
-                    <div className="card-header">
-                        <div className="card-title">🍩 Usage Breakdown</div>
-                        <div className="card-subtitle">By category</div>
+                {/* Pie Chart / Breakdown */}
+                <div className="lg:col-span-4 bg-black border border-white/5 rounded-[40px] p-10 shadow-3xl">
+                    <div className="mb-12">
+                        <h3 className="text-xl font-semibold tracking-tight mb-2 text-white">Cycle Allocation</h3>
+                        <p className="text-zinc-500 text-[10px] font-bold uppercase tracking-[0.2em]">Usage Breakdown by Sector</p>
                     </div>
 
-                    {pieData.length > 0 ? (
-                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '20px', padding: '10px 0' }}>
-                            <ResponsiveContainer width={180} height={180}>
-                                <PieChart>
-                                    <Pie
-                                        data={pieData}
-                                        cx="50%"
-                                        cy="50%"
-                                        innerRadius={45}
-                                        outerRadius={80}
-                                        paddingAngle={3}
-                                        dataKey="value"
-                                    >
-                                        {pieData.map((entry, idx) => (
-                                            <Cell key={idx} fill={entry.color} />
-                                        ))}
-                                    </Pie>
-                                    <Tooltip
-                                        formatter={(value) => formatSeconds(value)}
-                                        contentStyle={{
-                                            background: '#1e1e3a',
-                                            border: '1px solid rgba(255,255,255,0.1)',
-                                            borderRadius: '8px',
-                                            color: '#eeeeff',
-                                            fontSize: '12px',
-                                        }}
-                                    />
-                                </PieChart>
-                            </ResponsiveContainer>
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                                {pieData.map((d, idx) => (
-                                    <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                        <div style={{ width: '10px', height: '10px', borderRadius: '2px', background: d.color }} />
-                                        <span style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>
-                                            {d.name}: {formatSeconds(d.value)}
-                                        </span>
+                    <div className="flex flex-col items-center justify-center h-[280px] mb-10">
+                        {pieData.length > 0 ? (
+                            <div className="w-full h-full relative">
+                                <ResponsiveContainer width="100%" height="100%">
+                                    <PieChart>
+                                        <Pie
+                                            data={pieData}
+                                            cx="50%"
+                                            cy="50%"
+                                            innerRadius={65}
+                                            outerRadius={90}
+                                            paddingAngle={8}
+                                            dataKey="value"
+                                            stroke="none"
+                                        >
+                                            {pieData.map((entry, idx) => (
+                                                <Cell key={idx} fill={idx === 0 ? '#fff' : idx === 1 ? '#3f3f46' : '#18181b'} />
+                                            ))}
+                                        </Pie>
+                                        <Tooltip 
+                                            content={({ payload }) => {
+                                                if (payload && payload[0]) {
+                                                    return (
+                                                        <div className="bg-white text-black p-3 rounded-xl font-semibold text-[10px] uppercase shadow-2xl">
+                                                            {payload[0].name}: {formatSeconds(payload[0].value)}
+                                                        </div>
+                                                    );
+                                                }
+                                                return null;
+                                            }}
+                                        />
+                                    </PieChart>
+                                </ResponsiveContainer>
+                                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                                    <div className="text-center">
+                                        <div className="text-2xl font-bold text-white">{catSummary.productive?.percentage || 0}%</div>
+                                        <div className="text-[8px] font-medium uppercase tracking-widest text-zinc-600">Efficiency</div>
                                     </div>
-                                ))}
+                                </div>
                             </div>
-                        </div>
-                    ) : (
-                        <div className="empty-state">
-                            <h3>No data yet</h3>
-                            <p>Start browsing to see category distribution</p>
-                        </div>
-                    )}
+                        ) : (
+                            <Activity className="text-zinc-800" size={48} strokeWidth={1} />
+                        )}
+                    </div>
+
+                    <div className="space-y-2">
+                        {pieData.map((d, idx) => (
+                            <div key={idx} className="flex justify-between items-center p-3.5 bg-white/5 rounded-2xl border border-white/5">
+                                <div className="flex items-center gap-3">
+                                    <div className={`w-1 h-1 rounded-full ${idx === 0 ? 'bg-white' : idx === 1 ? 'bg-zinc-700' : 'bg-zinc-900'}`} />
+                                    <span className="text-[10px] font-bold uppercase tracking-widest text-zinc-500">{d.name}</span>
+                                </div>
+                                <span className="text-[11px] font-medium text-white">{formatSeconds(d.value)}</span>
+                            </div>
+                        ))}
+                    </div>
                 </div>
             </div>
 
             {/* Per-Site Detailed Breakdown */}
             {sites.length > 0 && (
-                <div className="card" style={{ marginTop: '20px' }}>
-                    <div className="card-header">
-                        <div className="card-title">🌐 Per-Site Breakdown</div>
-                        <div className="card-subtitle">Seconds, time, and percentage for each site</div>
+                <div className="bg-black border border-white/10 rounded-[40px] overflow-hidden mb-12 shadow-2xl">
+                    <div className="p-10 border-b border-white/10 bg-white/5 flex flex-col md:flex-row md:items-center justify-between gap-6">
+                        <div>
+                            <h3 className="text-xl font-semibold tracking-tight text-white mb-1">Domain Intelligence</h3>
+                            <p className="text-zinc-500 text-[10px] font-medium uppercase tracking-[0.4em]">Granular analysis of active interfaces</p>
+                        </div>
+                        <div className="flex gap-4">
+                            <div className="px-5 py-2.5 bg-white text-black rounded-xl text-[10px] font-bold uppercase tracking-widest">
+                                {sites.length} Active Nodes
+                            </div>
+                        </div>
                     </div>
-                    <div style={{ padding: '0 16px 16px 16px' }}>
-                        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
+                    <div className="overflow-x-auto">
+                        <table className="w-full text-left border-collapse">
                             <thead>
-                                <tr style={{ borderBottom: '1px solid var(--border-subtle)', color: 'var(--text-muted)', textAlign: 'left' }}>
-                                    <th style={{ padding: '8px 4px', fontWeight: 600 }}>Site</th>
-                                    <th style={{ padding: '8px 4px', fontWeight: 600, textAlign: 'right' }}>Seconds</th>
-                                    <th style={{ padding: '8px 4px', fontWeight: 600, textAlign: 'right', width: '100px' }}>Time</th>
-                                    <th style={{ padding: '8px 4px', fontWeight: 600, textAlign: 'right', width: '70px' }}>%</th>
-                                    <th style={{ padding: '8px 4px', fontWeight: 600, textAlign: 'center', width: '80px' }}>Category</th>
-                                    <th style={{ padding: '8px 4px', width: '30px' }}></th>
+                                <tr className="text-[10px] font-semibold uppercase tracking-[0.3em] text-zinc-600 border-b border-white/5">
+                                    <th className="pl-10 pr-8 py-5">Identity</th>
+                                    <th className="px-4 py-5 text-right">Magnitude</th>
+                                    <th className="px-4 py-5 text-right">Temporal</th>
+                                    <th className="px-4 py-5 text-right">Share</th>
+                                    <th className="px-4 py-5 text-center">Class</th>
+                                    <th className="pr-10 pl-8 py-5"></th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -349,108 +366,87 @@ export default function DashboardPage() {
                 </div>
             )}
 
-            {/* Course Progress */}
+            {/* Course Progress Section */}
             {courseProgress.total_plans > 0 && (
-                <div className="card" style={{ marginTop: '20px' }}>
-                    <div className="card-header">
-                        <div className="card-title">📚 Course Progress</div>
-                        <span className="badge badge-primary">
-                            {courseProgress.completed_chapters}/{courseProgress.total_chapters} chapters
-                        </span>
-                    </div>
-
-                    <div style={{ padding: '0 16px 16px 16px' }}>
-                        {/* Overall stats row */}
-                        <div style={{ display: 'flex', gap: '16px', marginBottom: '16px', flexWrap: 'wrap' }}>
-                            <div style={{ flex: 1, minWidth: '140px', padding: '12px', background: 'var(--bg-elevated)', borderRadius: 'var(--radius-sm)', textAlign: 'center' }}>
-                                <div style={{ fontSize: '24px', fontWeight: 700, color: 'var(--color-primary)' }}>
-                                    {courseProgress.overall_completion_percentage}%
+                <div className="bg-black border border-white/5 text-white rounded-[48px] p-12 overflow-hidden relative group shadow-3xl">
+                    <div className="absolute top-0 right-0 w-96 h-96 bg-white/[0.01] rounded-full -mr-48 -mt-48 blur-3xl group-hover:bg-white/[0.02] transition-all"></div>
+                    
+                    <div className="relative z-10">
+                        <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-10 mb-16 px-4">
+                            <div>
+                                <div className="flex items-center gap-4 mb-4">
+                                    <div className="p-3 bg-white/5 border border-white/10 rounded-2xl text-zinc-500">
+                                        <GraduationCap size={24} />
+                                    </div>
+                                    <h3 className="text-2xl font-semibold tracking-tight">Knowledge Mastery</h3>
                                 </div>
-                                <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Overall Completion</div>
+                                <p className="text-zinc-600 font-bold uppercase tracking-[0.3em] text-[9px] max-w-sm">Synchronized tracking across all active educational neural paths.</p>
                             </div>
-                            <div style={{ flex: 1, minWidth: '140px', padding: '12px', background: 'var(--bg-elevated)', borderRadius: 'var(--radius-sm)', textAlign: 'center' }}>
-                                <div style={{ fontSize: '24px', fontWeight: 700, color: 'var(--color-primary)' }}>
-                                    {courseProgress.formatted_watched}
-                                </div>
-                                <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
-                                    Total Watch Time ({courseProgress.total_watched_seconds?.toLocaleString()}s)
-                                </div>
-                            </div>
-                            <div style={{ flex: 1, minWidth: '140px', padding: '12px', background: 'var(--bg-elevated)', borderRadius: 'var(--radius-sm)', textAlign: 'center' }}>
-                                <div style={{ fontSize: '24px', fontWeight: 700, color: 'var(--color-primary)' }}>
-                                    {courseProgress.overall_watch_percentage}%
-                                </div>
-                                <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
-                                    Watch Progress ({courseProgress.formatted_watched} / {courseProgress.formatted_duration})
-                                </div>
+                            <div className="text-left md:text-right">
+                                <div className="text-5xl font-light text-white mb-2 tabular-nums">{courseProgress.overall_completion_percentage}%</div>
+                                <div className="text-[9px] font-bold uppercase tracking-[0.4em] text-zinc-700">Aggregate completion Rate</div>
                             </div>
                         </div>
 
-                        {/* Per-plan cards */}
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+                            <LearningStat 
+                                label="Completed Nodes" 
+                                value={`${courseProgress.completed_chapters}/${courseProgress.total_chapters}`} 
+                                icon={<CheckCircle2 size={18} />} 
+                            />
+                            <LearningStat 
+                                label="Retention Duration" 
+                                value={courseProgress.formatted_watched} 
+                                icon={<Clock size={18} />} 
+                            />
+                            <LearningStat 
+                                label="Neural Intake" 
+                                value={`${courseProgress.overall_watch_percentage}%`} 
+                                icon={<Monitor size={18} />} 
+                            />
+                        </div>
+
+                        <div className="space-y-6">
                             {courseProgress.plans?.map((plan) => (
-                                <div
-                                    key={plan.plan_id}
-                                    style={{
-                                        padding: '14px',
-                                        background: 'var(--bg-elevated)',
-                                        borderRadius: 'var(--radius-md)',
-                                        border: '1px solid var(--border-subtle)',
-                                    }}
-                                >
-                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                                        <h4 style={{ fontSize: '14px', fontWeight: 600, margin: 0 }}>{plan.title}</h4>
-                                        <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--color-primary)' }}>
-                                            {plan.completion_percentage}%
-                                        </span>
-                                    </div>
-                                    <div style={{ width: '100%', height: '6px', background: 'rgba(255,255,255,0.08)', borderRadius: '3px', overflow: 'hidden', marginBottom: '8px' }}>
-                                        <div style={{ width: `${plan.completion_percentage}%`, height: '100%', background: 'linear-gradient(90deg, var(--color-primary), var(--color-secondary))', transition: 'width 0.3s ease' }} />
-                                    </div>
-                                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', color: 'var(--text-muted)' }}>
-                                        <span>{plan.completed_chapters}/{plan.total_chapters} chapters</span>
-                                        <span>{plan.formatted_watched} watched ({plan.total_watched_seconds?.toLocaleString()}s)</span>
-                                        <span>{plan.quiz_unlocked ? '🎯 Quiz ready' : '🔒 Quiz locked'}</span>
+                                <div key={plan.plan_id} className="bg-white/5 border border-white/5 rounded-[32px] p-8 hover:bg-white/[0.07] transition-all">
+                                    <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-8">
+                                        <div>
+                                            <h4 className="text-xl font-medium tracking-tight mb-2">{plan.title}</h4>
+                                            <div className="flex items-center gap-4">
+                                                <div className="px-4 py-1.5 bg-black/40 border border-white/10 rounded-full text-[9px] font-bold uppercase tracking-widest text-zinc-500">
+                                                    {plan.total_chapters} Lessons Defined
+                                                </div>
+                                                {plan.quiz_unlocked && (
+                                                    <div className="flex items-center gap-2 text-[9px] font-bold uppercase tracking-widest text-white/80">
+                                                       <CheckCircle2 size={12} /> Quiz Core Active
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+                                        <div className="text-right">
+                                            <div className="text-2xl font-light text-white mb-2">{plan.completion_percentage}%</div>
+                                            <div className="w-40 h-1 bg-white/5 rounded-full overflow-hidden">
+                                                <div className="bg-white h-full transition-all duration-1000" style={{ width: `${plan.completion_percentage}%` }} />
+                                            </div>
+                                        </div>
                                     </div>
 
-                                    {/* Chapter rows */}
-                                    {plan.chapters?.length > 0 && (
-                                        <div style={{ marginTop: '10px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                                            {plan.chapters.map((ch) => (
-                                                <div
-                                                    key={ch.chapter_index}
-                                                    style={{
-                                                        display: 'flex',
-                                                        alignItems: 'center',
-                                                        gap: '8px',
-                                                        padding: '6px 8px',
-                                                        background: 'var(--bg-card)',
-                                                        borderRadius: 'var(--radius-sm)',
-                                                        fontSize: '12px',
-                                                    }}
-                                                >
-                                                    <span style={{ fontSize: '14px', width: '18px', textAlign: 'center', color: ch.is_completed ? CATEGORY_COLORS.productive : 'var(--text-muted)' }}>
-                                                        {ch.is_completed ? '✓' : '○'}
-                                                    </span>
-                                                    <span style={{ flex: 1, color: 'var(--text-secondary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                                                        {ch.title}
-                                                    </span>
-                                                    {ch.creator_name && (
-                                                        <span style={{ fontSize: '10px', color: 'var(--text-muted)', maxWidth: '80px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                                                            {ch.creator_name}
-                                                        </span>
-                                                    )}
-                                                    <span style={{ color: 'var(--text-muted)', whiteSpace: 'nowrap', fontFamily: 'monospace' }}>
-                                                        {ch.watched_seconds}s/{ch.video_duration_seconds}s
-                                                    </span>
-                                                    <span style={{ color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>
-                                                        {ch.formatted_watched}/{ch.formatted_duration}
-                                                    </span>
-                                                    <span style={{ fontWeight: 600, color: ch.is_completed ? CATEGORY_COLORS.productive : 'var(--color-primary)', whiteSpace: 'nowrap', minWidth: '35px', textAlign: 'right' }}>
-                                                        {ch.watch_percentage}%
-                                                    </span>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                                        {plan.chapters?.slice(0, 6).map((ch) => (
+                                            <div key={ch.chapter_index} className="flex items-center gap-4 p-4 bg-black/40 rounded-2xl border border-white/5 hover:border-white/20 transition-all group/item">
+                                                <div className={`p-1.5 rounded-lg transition-all ${ch.is_completed ? 'bg-white text-black' : 'bg-white/5 text-zinc-800'}`}>
+                                                    {ch.is_completed ? <CheckCircle2 size={14} /> : <div className="w-3.5 h-3.5" />}
                                                 </div>
-                                            ))}
+                                                <div className="flex-1 min-w-0">
+                                                    <div className="text-[10px] font-bold uppercase truncate group-hover/item:text-white transition-colors">{ch.title}</div>
+                                                    <div className="text-[9px] font-bold uppercase text-zinc-700 mt-1">{ch.watch_percentage}% Intake</div>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                    {plan.chapters?.length > 6 && (
+                                        <div className="mt-6 text-center">
+                                            <span className="text-[9px] font-bold uppercase tracking-[0.4em] text-zinc-800">And {plan.chapters.length - 6} Additional Nodes</span>
                                         </div>
                                     )}
                                 </div>
@@ -459,156 +455,151 @@ export default function DashboardPage() {
                     </div>
                 </div>
             )}
-
-            {/* Time by Site — Horizontal Bar Chart */}
-            {sites.length > 0 && (() => {
-                const maxSeconds = Math.max(...sites.map(d => d.total_seconds || 0), 1);
-                return (
-                    <div className="card" style={{ marginTop: '20px' }}>
-                        <div className="card-header">
-                            <div className="card-title">📊 Time by Site</div>
-                            <div className="card-subtitle">Horizontal bar chart</div>
-                        </div>
-                        <div style={{ padding: '4px 16px 16px 16px' }}>
-                            {sites.map((d, i) => {
-                                const pct = (d.total_seconds / maxSeconds) * 100;
-                                const barColor = CATEGORY_COLORS[d.category] || '#60a5fa';
-                                return (
-                                    <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '6px' }}>
-                                        <div style={{ width: '140px', fontSize: '12px', color: '#ccc', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flexShrink: 0 }} title={d.domain}>
-                                            {d.domain}
-                                        </div>
-                                        <div style={{ flex: 1, background: 'rgba(255,255,255,0.05)', borderRadius: '5px', height: '18px', overflow: 'hidden' }}>
-                                            <div style={{
-                                                width: `${Math.max(pct, 3)}%`,
-                                                height: '100%',
-                                                background: barColor,
-                                                borderRadius: '5px',
-                                                transition: 'width 0.5s ease',
-                                            }} />
-                                        </div>
-                                        <div style={{ width: '100px', fontSize: '11px', color: '#999', textAlign: 'right', flexShrink: 0 }}>
-                                            {formatSeconds(d.total_seconds)} ({d.percentage}%)
-                                        </div>
-                                    </div>
-                                );
-                            })}
-                        </div>
-                    </div>
-                );
-            })()}
         </div>
     );
 }
 
-/* Expandable site detail row for the per-site table */
+function StatCard({ label, value, icon, trend, subvalue, isAlert }) {
+    return (
+        <div className={`bg-zinc-900 border border-white/5 p-7 rounded-[40px] hover:border-white/10 transition-all font-outfit shadow-3xl ${isAlert ? 'ring-1 ring-white/10' : ''}`}>
+            <div className="flex justify-between items-start mb-6">
+                <div className="p-3 bg-white/5 border border-white/10 rounded-2xl text-zinc-400">
+                    {React.cloneElement(icon, { size: 18 })}
+                </div>
+                {trend && (
+                    <div className={`px-2.5 py-1 rounded-full text-[9px] font-bold uppercase tracking-widest bg-white text-black`}>
+                        {trend.trend}
+                    </div>
+                )}
+            </div>
+            <div className="text-zinc-500 text-[10px] font-bold uppercase tracking-[0.3em] mb-2">{label}</div>
+            <div className="text-2xl font-medium text-white tracking-tight tabular-nums mb-2">{value}</div>
+            {subvalue && (
+                <div className="text-[9px] font-bold uppercase tracking-widest text-zinc-700">{subvalue}</div>
+            )}
+        </div>
+    );
+}
+
+function LearningStat({ label, value, icon }) {
+    return (
+        <div className="bg-white/5 p-6 rounded-[28px] border border-white/5 hover:border-white/10 transition-all flex items-center gap-5">
+            <div className="p-3 bg-white/5 rounded-xl text-white">
+                {icon}
+            </div>
+            <div>
+                <div className="text-[9px] font-bold uppercase tracking-[0.2em] text-zinc-700 mb-1">{label}</div>
+                <div className="text-xl font-medium text-white tabular-nums">{value}</div>
+            </div>
+        </div>
+    );
+}
+
 function SiteRow({ site, hasDetails, isExpanded, onToggle, maxSeconds }) {
     const barWidth = Math.max((site.total_seconds / maxSeconds) * 100, 3);
-    const barColor = CATEGORY_COLORS[site.category] || '#60a5fa';
 
     return (
         <>
             <tr
-                style={{
-                    borderBottom: '1px solid rgba(255,255,255,0.04)',
-                    cursor: hasDetails ? 'pointer' : 'default',
-                    transition: 'background 0.15s',
-                }}
+                className={`transition-all border-b border-white/5 ${hasDetails ? 'cursor-pointer hover:bg-white/5' : ''}`}
                 onClick={hasDetails ? onToggle : undefined}
-                onMouseOver={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.03)'}
-                onMouseOut={(e) => e.currentTarget.style.background = 'transparent'}
             >
-                <td style={{ padding: '10px 4px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <div style={{
-                            width: '28px', height: '28px', borderRadius: '6px',
-                            background: site.domain?.includes('youtube') ? 'linear-gradient(135deg, #ff0000, #cc0000)' :
-                                site.domain?.includes('chatgpt') || site.domain?.includes('openai') ? 'linear-gradient(135deg, #10a37f, #0d8c6d)' :
-                                site.domain?.includes('claude') ? 'linear-gradient(135deg, #d97706, #b45309)' :
-                                    'var(--bg-elevated)',
-                            display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            color: '#fff', fontSize: '12px', fontWeight: 700, flexShrink: 0,
-                        }}>
-                            {site.domain?.includes('youtube') ? '▶' :
-                                site.domain?.includes('chatgpt') || site.domain?.includes('openai') ? 'AI' :
-                                site.domain?.includes('claude') ? 'AI' :
-                                    site.domain?.charAt(0).toUpperCase()}
+                <td className="pl-10 pr-8 py-6">
+                    <div className="flex items-center gap-5">
+                        <div className="w-12 h-12 rounded-xl bg-white/5 text-white flex items-center justify-center font-bold text-lg border border-white/10">
+                            {site.domain?.includes('youtube') ? <Youtube size={20} /> :
+                             site.domain?.includes('chatgpt') || site.domain?.includes('openai') ? <Bot size={20} /> :
+                             site.domain?.includes('claude') ? <Bot size={20} /> :
+                             site.domain?.charAt(0).toUpperCase()}
                         </div>
-                        <div>
-                            <div style={{ fontWeight: 500, color: 'var(--text-primary)' }}>{site.domain}</div>
-                            <div style={{ width: '80px', height: '3px', background: 'rgba(255,255,255,0.08)', borderRadius: '2px', marginTop: '3px' }}>
-                                <div style={{ width: `${barWidth}%`, height: '100%', background: barColor, borderRadius: '2px' }} />
+                        <div className="min-w-0 flex-1">
+                            <div className="font-semibold text-white tracking-tight text-base mb-2 truncate max-w-[280px]">{site.domain}</div>
+                            <div className="h-1 w-24 bg-white/5 rounded-full overflow-hidden">
+                                <div 
+                                    className="bg-white/60 h-full transition-all duration-1000" 
+                                    style={{ width: `${barWidth}%` }} 
+                                />
                             </div>
                         </div>
                     </div>
                 </td>
-                <td style={{ padding: '10px 4px', textAlign: 'right', fontFamily: 'monospace', color: 'var(--text-secondary)' }}>
-                    {site.total_seconds?.toLocaleString()}
+                <td className="px-4 py-6 text-right font-medium text-[10px] text-zinc-700 tabular-nums">
+                    {site.total_seconds?.toLocaleString()}S
                 </td>
-                <td style={{ padding: '10px 4px', textAlign: 'right', color: 'var(--text-secondary)', fontWeight: 500 }}>
+                <td className="px-4 py-6 text-right text-lg font-semibold text-white tabular-nums tracking-tight">
                     {site.formatted_time}
                 </td>
-                <td style={{ padding: '10px 4px', textAlign: 'right', fontWeight: 600, color: 'var(--color-primary)' }}>
+                <td className="px-4 py-6 text-right text-[10px] font-medium text-zinc-600 tabular-nums uppercase tracking-widest">
                     {site.percentage}%
                 </td>
-                <td style={{ padding: '10px 4px', textAlign: 'center' }}>
-                    <span className={`badge badge-${site.category}`} style={{ fontSize: '10px', padding: '2px 8px' }}>
+                <td className="px-4 py-6 text-center">
+                    <span className={`px-4 py-1.5 rounded-full text-[9px] font-bold uppercase tracking-wider border ${
+                        site.category === 'productive' ? 'bg-white text-black border-white' : 
+                        site.category === 'neutral' ? 'bg-transparent text-zinc-400 border-white/10' : 
+                        'bg-zinc-900 text-zinc-600 border-transparent'
+                    }`}>
                         {site.category}
                     </span>
                 </td>
-                <td style={{ padding: '10px 4px', textAlign: 'center', fontSize: '10px', color: 'var(--text-muted)' }}>
-                    {hasDetails ? (isExpanded ? '▲' : '▼') : ''}
+                <td className="pr-10 pl-8 py-6 text-center text-zinc-600">
+                    {hasDetails && (
+                        <div className={`p-2 rounded-lg border border-white/5 transition-all ${isExpanded ? 'bg-white text-black border-white' : 'bg-transparent'}`}>
+                            {isExpanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+                        </div>
+                    )}
                 </td>
             </tr>
 
-            {/* Expanded YouTube videos */}
-            {isExpanded && site.videos && site.videos.map((v, vi) => (
-                <tr key={`v-${vi}`} style={{ background: 'rgba(124, 92, 255, 0.04)', borderBottom: '1px solid rgba(255,255,255,0.02)' }}>
-                    <td style={{ padding: '6px 4px 6px 48px', fontSize: '12px' }}>
-                        <span style={{ color: '#ff0000', marginRight: '6px' }}>▶</span>
-                        <span style={{ color: 'var(--text-secondary)' }} title={v.title}>
-                            {v.title?.length > 50 ? v.title.slice(0, 50) + '...' : v.title}
-                        </span>
-                        {v.category && (
-                            <span className={`badge badge-${v.category}`} style={{ fontSize: '9px', padding: '1px 5px', marginLeft: '6px' }}>
-                                {v.category}
-                            </span>
-                        )}
-                    </td>
-                    <td style={{ padding: '6px 4px', textAlign: 'right', fontFamily: 'monospace', fontSize: '12px', color: 'var(--text-muted)' }}>
-                        {v.seconds?.toLocaleString()}
-                    </td>
-                    <td style={{ padding: '6px 4px', textAlign: 'right', fontSize: '12px', color: 'var(--text-muted)' }}>
-                        {v.formatted_time}
-                    </td>
-                    <td style={{ padding: '6px 4px', textAlign: 'right', fontSize: '12px', color: 'var(--text-muted)' }}>
-                        {v.percentage}%
-                    </td>
-                    <td colSpan={2} />
-                </tr>
-            ))}
+            {/* Expanded Content */}
+            {isExpanded && (
+                <tr className="bg-zinc-50/50">
+                    <td colSpan={6} className="px-10 py-10">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            {site.videos && site.videos.map((v, vi) => (
+                                <ExpandedItem 
+                                    key={vi} 
+                                    title={v.title} 
+                                    category={v.category} 
+                                    time={v.formatted_time} 
+                                    share={v.percentage} 
+                                    icon={<Youtube size={16} />} 
+                                />
+                            ))}
 
-            {/* Expanded ChatGPT/AI sessions */}
-            {isExpanded && site.sessions && site.sessions.map((s, si) => (
-                <tr key={`s-${si}`} style={{ background: 'rgba(16, 163, 127, 0.04)', borderBottom: '1px solid rgba(255,255,255,0.02)' }}>
-                    <td style={{ padding: '6px 4px 6px 48px', fontSize: '12px' }}>
-                        <span style={{ color: '#10a37f', marginRight: '6px' }}>💬</span>
-                        <span style={{ color: 'var(--text-secondary)' }} title={s.title}>
-                            {s.title?.length > 50 ? s.title.slice(0, 50) + '...' : s.title}
-                        </span>
+                            {site.sessions && site.sessions.map((s, si) => (
+                                <ExpandedItem 
+                                    key={si} 
+                                    title={s.title} 
+                                    category="Interaction Session" 
+                                    time={s.formatted_time} 
+                                    share={s.percentage} 
+                                    icon={<MessageSquare size={16} />} 
+                                />
+                            ))}
+                        </div>
                     </td>
-                    <td style={{ padding: '6px 4px', textAlign: 'right', fontFamily: 'monospace', fontSize: '12px', color: 'var(--text-muted)' }}>
-                        {s.seconds?.toLocaleString()}
-                    </td>
-                    <td style={{ padding: '6px 4px', textAlign: 'right', fontSize: '12px', color: 'var(--text-muted)' }}>
-                        {s.formatted_time}
-                    </td>
-                    <td style={{ padding: '6px 4px', textAlign: 'right', fontSize: '12px', color: 'var(--text-muted)' }}>
-                        {s.percentage}%
-                    </td>
-                    <td colSpan={2} />
                 </tr>
-            ))}
+            )}
         </>
+    );
+}
+
+function ExpandedItem({ title, category, time, share, icon }) {
+    return (
+        <div className="flex items-center justify-between p-7 bg-white/5 rounded-[32px] border border-white/5 transition-all animate-in slide-in-from-top-2 duration-300 shadow-xl overflow-hidden">
+            <div className="flex items-center gap-5 flex-1 min-w-0">
+                <div className="p-3 bg-white/5 rounded-2xl text-zinc-500">
+                    {icon}
+                </div>
+                <div className="truncate flex-1">
+                    <div className="text-[13px] font-semibold text-white tracking-tight truncate mb-1">{title}</div>
+                    <div className="text-[9px] font-medium uppercase text-zinc-600 tracking-wider">{category || 'uncategorized'}</div>
+                </div>
+            </div>
+            <div className="text-right ml-6 pl-6 border-l border-white/5 flex flex-col justify-center min-w-max">
+                <div className="text-[13px] font-semibold text-white tabular-nums">{time}</div>
+                <div className="text-[9px] font-medium uppercase text-zinc-700 mt-1 tracking-widest">{share}% Share</div>
+            </div>
+        </div>
     );
 }

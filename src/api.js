@@ -1,5 +1,5 @@
 /**
- * LifeOS – API Client (Frontend Dashboard)
+ * Polaris – API Client (Frontend Dashboard)
  */
 
 // Use localhost if accessed via localhost, otherwise use 127.0.0.1
@@ -7,25 +7,25 @@ const API_HOST = window.location.hostname === 'localhost' ? 'localhost' : '127.0
 const API_BASE = `http://${API_HOST}:8000/api`;
 
 function getToken() {
-    return localStorage.getItem('lifeos_token');
+    return localStorage.getItem('polaris_token');
 }
 
 export function setToken(token) {
-    localStorage.setItem('lifeos_token', token);
+    localStorage.setItem('polaris_token', token);
 }
 
 export function clearToken() {
-    localStorage.removeItem('lifeos_token');
-    localStorage.removeItem('lifeos_user');
+    localStorage.removeItem('polaris_token');
+    localStorage.removeItem('polaris_user');
 }
 
 export function getUser() {
-    const data = localStorage.getItem('lifeos_user');
+    const data = localStorage.getItem('polaris_user');
     return data ? JSON.parse(data) : null;
 }
 
 export function setUser(user) {
-    localStorage.setItem('lifeos_user', JSON.stringify(user));
+    localStorage.setItem('polaris_user', JSON.stringify(user));
 }
 
 async function request(endpoint, options = {}) {
