@@ -132,7 +132,7 @@ export default function SettingsPage() {
 
                 {/* Profile Card */}
                 <div className="bg-black border border-white/5 rounded-[40px] p-10 flex flex-col shadow-3xl relative overflow-hidden group">
-                    <div className="absolute top-0 right-0 p-10 opacity-[0.02] group-hover:opacity-[0.05] transition-opacity">
+                    <div className="absolute top-0 right-0 p-10 opacity-[0.07] group-hover:opacity-[0.12] transition-opacity">
                         <Fingerprint size={280} />
                     </div>
                     <div className="flex items-center gap-4 mb-10 relative z-10">
