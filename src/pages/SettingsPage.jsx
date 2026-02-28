@@ -1,15 +1,15 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../App';
 import { tracking } from '../api';
-import { 
-    Settings, 
-    Shield, 
-    ShieldAlert, 
-    User, 
-    Globe, 
-    Chrome, 
-    Trash2, 
-    RefreshCw, 
+import {
+    Settings,
+    Shield,
+    ShieldAlert,
+    User,
+    Globe,
+    Chrome,
+    Trash2,
+    RefreshCw,
     ChevronRight,
     Zap,
     Fingerprint
@@ -93,36 +93,33 @@ export default function SettingsPage() {
                             </div>
                             <h3 className="text-lg font-semibold tracking-tight text-white">Policy Protocol</h3>
                         </div>
-                        <div className={`px-4 py-1 rounded-full text-[9px] font-bold uppercase tracking-[0.2em] border ${
-                            blockingMode === 'hard' ? 'bg-white text-black border-white' : 'bg-transparent text-zinc-500 border-white/10'
-                        }`}>
+                        <div className={`px-4 py-1 rounded-full text-[9px] font-bold uppercase tracking-[0.2em] border ${blockingMode === 'hard' ? 'bg-white text-black border-white' : 'bg-transparent text-zinc-500 border-white/10'
+                            }`}>
                             {blockingMode}
                         </div>
                     </div>
-                    
+
                     <p className="text-zinc-500 text-[12px] font-light leading-relaxed mb-12">
                         Specify the strictness of focus enforcement. <span className="text-white font-medium">Hard Mode</span> operates at the network kernel level. <span className="text-white font-medium">Soft Mode</span> utilizes a cognitive UI overlay system.
                     </p>
-                    
+
                     <div className="grid grid-cols-2 gap-4">
                         <button
                             onClick={() => handleSetMode('hard')}
-                            className={`flex flex-col items-center justify-center gap-4 py-8 rounded-[24px] font-bold uppercase tracking-[0.3em] text-[10px] transition-all duration-300 border ${
-                                blockingMode === 'hard' 
-                                ? 'bg-white text-black border-white shadow-2xl scale-[1.02]' 
-                                : 'bg-white/5 text-zinc-600 border-white/5 hover:border-white/20 hover:text-white'
-                            }`}
+                            className={`flex flex-col items-center justify-center gap-4 py-8 rounded-[24px] font-bold uppercase tracking-[0.3em] text-[10px] transition-all duration-300 border ${blockingMode === 'hard'
+                                    ? 'bg-white text-black border-white shadow-2xl scale-[1.02]'
+                                    : 'bg-white/5 text-zinc-600 border-white/5 hover:border-white/20 hover:text-white'
+                                }`}
                         >
                             <ShieldAlert size={20} className={blockingMode === 'hard' ? 'animate-pulse' : ''} />
                             Hard Mode
                         </button>
                         <button
                             onClick={() => handleSetMode('soft')}
-                            className={`flex flex-col items-center justify-center gap-4 py-8 rounded-[24px] font-bold uppercase tracking-[0.3em] text-[10px] transition-all duration-300 border ${
-                                blockingMode === 'soft' 
-                                ? 'bg-white text-black border-white shadow-2xl scale-[1.02]' 
-                                : 'bg-white/5 text-zinc-600 border-white/5 hover:border-white/20 hover:text-white'
-                            }`}
+                            className={`flex flex-col items-center justify-center gap-4 py-8 rounded-[24px] font-bold uppercase tracking-[0.3em] text-[10px] transition-all duration-300 border ${blockingMode === 'soft'
+                                    ? 'bg-white text-black border-white shadow-2xl scale-[1.02]'
+                                    : 'bg-white/5 text-zinc-600 border-white/5 hover:border-white/20 hover:text-white'
+                                }`}
                         >
                             <User size={20} />
                             Soft Mode
@@ -183,16 +180,16 @@ export default function SettingsPage() {
                         <div className="flex flex-col md:flex-row gap-4 p-2 bg-white/5 rounded-[32px] border border-white/5 group transition-all">
                             <div className="flex-1 flex items-center gap-4 px-6 py-4 bg-black/40 rounded-[24px] border border-transparent group-focus-within:border-white/10 transition-all">
                                 <Globe className="text-zinc-700" size={18} />
-                                <input 
+                                <input
                                     className="flex-1 bg-transparent border-none text-[13px] font-medium text-white placeholder:text-zinc-800 focus:outline-none"
                                     value={newDomain}
                                     onChange={(e) => setNewDomain(e.target.value)}
-                                    placeholder="Enter node domain pattern..." 
-                                    required 
+                                    placeholder="Enter node domain pattern..."
+                                    required
                                 />
                             </div>
                             <div className="flex items-center bg-black/40 rounded-[24px] border border-transparent px-6 py-4">
-                                <select 
+                                <select
                                     className="bg-transparent border-none text-[9px] font-bold uppercase tracking-[0.3em] text-zinc-500 focus:outline-none appearance-none cursor-pointer pr-4"
                                     value={newCategory}
                                     onChange={(e) => setNewCategory(e.target.value)}
@@ -214,10 +211,9 @@ export default function SettingsPage() {
                                 <div className="text-[9px] font-bold uppercase tracking-[0.2em] text-zinc-700 mb-4">Identified Pattern</div>
                                 <span className="text-[13px] font-medium text-white truncate mb-6">{c.domain_pattern}</span>
                                 <div className="flex justify-between items-center pt-5 border-t border-white/5">
-                                    <span className={`px-4 py-1.5 rounded-full text-[8px] font-bold uppercase tracking-[0.2em] transition-all ${
-                                        c.category === 'productive' ? 'bg-white text-black' : 
-                                        c.category === 'distracting' ? 'bg-transparent text-white border border-white/20' : 'bg-transparent text-zinc-700 border border-white/5'
-                                    }`}>
+                                    <span className={`px-4 py-1.5 rounded-full text-[8px] font-bold uppercase tracking-[0.2em] transition-all ${c.category === 'productive' ? 'bg-white text-black' :
+                                            c.category === 'distracting' ? 'bg-transparent text-white border border-white/20' : 'bg-transparent text-zinc-700 border border-white/5'
+                                        }`}>
                                         {c.category}
                                     </span>
                                     <div className="w-1 h-1 rounded-full bg-zinc-800 group-hover/item:bg-white transition-colors"></div>
@@ -235,11 +231,11 @@ export default function SettingsPage() {
                         </div>
                         <h3 className="text-lg font-semibold tracking-tight text-white uppercase italic">Protocol_Iface</h3>
                     </div>
-                    
+
                     <p className="text-zinc-600 text-[11px] font-medium leading-relaxed uppercase tracking-[0.1em] mb-12 relative z-10">
                         Execute manual synchronization via the Browser Core to enable high-fidelity monitoring and granular enforcement capabilities.
                     </p>
-                    
+
                     <div className="space-y-6 flex-1 relative z-10">
                         {[
                             'Access CHROME://EXTENSIONS',
@@ -272,11 +268,11 @@ export default function SettingsPage() {
                         </div>
                         <h3 className="text-lg font-semibold tracking-tight text-white">Kernel Scrub</h3>
                     </div>
-                    
+
                     <p className="text-zinc-600 text-[12px] font-light leading-relaxed mb-12 relative z-10">
                         Execute a complete purge of all operational metrics and log files for the current 24-hour cycle. Warning: This action is <span className="text-white font-medium">irreversible</span>.
                     </p>
-                    
+
                     <button
                         disabled={resettingToday}
                         onClick={async () => {

@@ -6,7 +6,7 @@
   --color-secondary: #ffffff;
   --color-accent: #111111;
   --color-muted: #444444;
-  
+
   --font-sans: 'Outfit', system-ui, -apple-system, sans-serif;
   --font-outfit: 'Outfit', sans-serif;
   --font-unbounded: 'Unbounded', sans-serif;
@@ -25,7 +25,7 @@
   .shadow-3xl {
     box-shadow: 0 35px 60px -15px rgba(0, 0, 0, 0.5);
   }
-  
+
   .glass {
     @apply bg-white/[0.03] backdrop-blur-xl border border-white/5;
   }
@@ -33,9 +33,11 @@
   .custom-scrollbar::-webkit-scrollbar {
     width: 4px;
   }
+
   .custom-scrollbar::-webkit-scrollbar-track {
     @apply bg-transparent;
   }
+
   .custom-scrollbar::-webkit-scrollbar-thumb {
     @apply bg-white/10 rounded-full hover:bg-white/20 transition-colors;
   }
@@ -45,19 +47,50 @@
 ::-webkit-scrollbar {
   width: 8px;
 }
+
 ::-webkit-scrollbar-track {
   @apply bg-black;
 }
+
 ::-webkit-scrollbar-thumb {
   @apply bg-zinc-800 rounded-full border-2 border-black hover:bg-zinc-700 transition-colors;
 }
 
 /* Animations */
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(4px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .animate-in {
   animation: fadeIn 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Gamification - XP Bar shimmer */
+@keyframes xpShimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+
+  100% {
+    transform: translateX(200%);
+  }
+}
+
+/* Loading spinner */
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
 }
