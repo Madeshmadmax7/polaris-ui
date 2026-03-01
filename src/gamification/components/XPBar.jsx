@@ -1,67 +1,72 @@
-
 import { memo, useMemo } from 'react';
 import { Sword } from 'lucide-react';
 import { useXP } from '../hooks/useXP';
-import { getRank, getLevelProgress } from '../utils/rankSystem';
 
 /**
- * XPBar — Pixel-art game-style XP bar.
- * Sword icon overlapping the bar on the left, segmented fill, XP on the right.
- * Matches the classic RPG sword health bar aesthetic.
- *   ⚔️ [██ ██ ██ ░░ ░░ ░░ ░░ ░░] 42 XP
+ * XPBar — Game-style daily energy bar.
+ * XP computed from real backend data: productive ratio.
+ * ⚔ [██ ██ ██ ██ ██ ░░ ░░ ░░ ░░ ░░] 58 XP
  */
 function XPBarInner() {
-    const { totalXP, level } = useXP();
-    const rank = useMemo(() => getRank(totalXP), [totalXP]);
-    const progress = useMemo(() => getLevelProgress(totalXP), [totalXP]);
+    const { totalXP, maxXP = 100 } = useXP();
+
+    const pct = Math.round((totalXP / maxXP) * 100);
+
+    // Color based on energy level
+    const barColor = useMemo(() => {
+        if (pct >= 70) return '#22c55e';       // Green — healthy
+        if (pct >= 40) return '#f59e0b';       // Amber — warning
+        return '#ef4444';                       // Red — critical
+    }, [pct]);
 
     const totalSegments = 10;
-    const filledSegments = Math.floor(progress.percentage / totalSegments);
-    const partialFill = (progress.percentage % totalSegments) / totalSegments;
+    const filledSegments = Math.floor(totalXP / (maxXP / totalSegments));
+    const partialFill = (totalXP % (maxXP / totalSegments)) / (maxXP / totalSegments);
 
     return (
         <div style={styles.wrapper}>
-            {/* Sword icon — overlapping the bar on the left */}
+            {/* Sword icon — straight, no circle, just the icon */}
             <div style={{
                 ...styles.swordIcon,
-                color: rank.color,
-                filter: `drop-shadow(0 0 4px ${rank.color}50)`,
+                filter: `drop-shadow(0 0 4px ${barColor}60)`,
             }}>
-                <Sword size={18} strokeWidth={2.5} />
+                <Sword
+                    size={18}
+                    color={barColor}
+                    strokeWidth={2.5}
+                    style={{ transform: 'rotate(45deg)' }}
+                />
             </div>
 
-            {/* Bar container */}
+            {/* Segmented bar */}
             <div style={{
                 ...styles.barOuter,
-                borderColor: `${rank.color}40`,
-                boxShadow: `0 0 6px ${rank.color}15, inset 0 1px 0 rgba(255,255,255,0.05)`,
+                borderColor: `${barColor}30`,
             }}>
-                {/* Segments */}
                 <div style={styles.segmentRow}>
                     {Array.from({ length: totalSegments }).map((_, i) => {
-                        let fillPct = 0;
-                        if (i < filledSegments) fillPct = 100;
-                        else if (i === filledSegments) fillPct = partialFill * 100;
+                        let fill = 0;
+                        if (i < filledSegments) fill = 100;
+                        else if (i === filledSegments) fill = partialFill * 100;
 
-                        const isEmpty = fillPct === 0;
+                        const isEmpty = fill === 0;
 
                         return (
                             <div key={i} style={{
                                 ...styles.segment,
-                                background: isEmpty
-                                    ? 'rgba(255,255,255,0.12)'
-                                    : 'transparent',
+                                background: isEmpty ? 'rgba(255,255,255,0.15)' : 'transparent',
                                 border: isEmpty
-                                    ? '1px solid rgba(255,255,255,0.08)'
-                                    : `1px solid ${rank.color}60`,
+                                    ? '1px solid rgba(255,255,255,0.1)'
+                                    : `1px solid ${barColor}50`,
                             }}>
-                                {fillPct > 0 && (
+                                {fill > 0 && (
                                     <div style={{
-                                        width: `${fillPct}%`,
+                                        width: `${fill}%`,
                                         height: '100%',
-                                        background: rank.color,
-                                        borderRadius: '1px',
-                                        boxShadow: `0 0 3px ${rank.color}80`,
+                                        background: barColor,
+                                        borderRadius: '1.5px',
+                                        boxShadow: `0 0 4px ${barColor}60`,
+                                        transition: 'width 0.5s ease',
                                     }} />
                                 )}
                             </div>
@@ -70,9 +75,9 @@ function XPBarInner() {
                 </div>
             </div>
 
-            {/* XP count on the right */}
+            {/* XP count */}
             <div style={styles.xpSide}>
-                <span style={{ ...styles.xpNum, color: rank.color }}>{totalXP}</span>
+                <span style={{ ...styles.xpNum, color: barColor }}>{totalXP}</span>
                 <span style={styles.xpLabel}>XP</span>
             </div>
         </div>
@@ -83,35 +88,28 @@ const XPBar = memo(XPBarInner);
 XPBar.displayName = 'XPBar';
 export default XPBar;
 
-// ── Inline styles ───────────────────────────────────────
 const styles = {
     wrapper: {
         display: 'flex',
         alignItems: 'center',
-        gap: '0px',
+        gap: '4px',
         fontFamily: "'Outfit', sans-serif",
         position: 'relative',
         height: '32px',
     },
     swordIcon: {
-        position: 'relative',
-        zIndex: 2,
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        width: '26px',
-        height: '26px',
-        background: 'rgba(0,0,0,0.8)',
-        borderRadius: '50%',
-        border: '2px solid rgba(255,255,255,0.15)',
         flexShrink: 0,
-        marginRight: '-8px',
+        marginRight: '2px',
+        /* No circle — just a raw icon */
     },
     barOuter: {
         display: 'flex',
         alignItems: 'center',
-        padding: '3px 6px 3px 12px',
-        background: 'rgba(0,0,0,0.7)',
+        padding: '3px 6px',
+        background: 'rgba(0,0,0,0.5)',
         borderRadius: '6px',
         border: '1.5px solid',
         flex: 1,
@@ -135,7 +133,7 @@ const styles = {
         display: 'flex',
         alignItems: 'baseline',
         gap: '2px',
-        marginLeft: '6px',
+        marginLeft: '4px',
         flexShrink: 0,
     },
     xpNum: {

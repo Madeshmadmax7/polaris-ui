@@ -1,20 +1,20 @@
 import { useState, useEffect, useRef } from 'react';
 import { ai, connectDashboardWS } from '../api';
-import { 
-    FileText, 
-    Upload, 
-    Plus, 
-    Book, 
-    Calendar, 
-    Brain, 
-    Search, 
-    CheckCircle2, 
-    RefreshCw, 
-    LogOut, 
-    Maximize, 
-    Play, 
-    Clock, 
-    Youtube, 
+import {
+    FileText,
+    Upload,
+    Plus,
+    Book,
+    Calendar,
+    Brain,
+    Search,
+    CheckCircle2,
+    RefreshCw,
+    LogOut,
+    Maximize,
+    Play,
+    Clock,
+    Youtube,
     Activity,
     Lock,
     AlertTriangle,
@@ -43,7 +43,7 @@ export default function LearningPage() {
     const [quizAttempts, setQuizAttempts] = useState([]); // Track quiz attempt history
     const [liveActivity, setLiveActivity] = useState(null); // Live tracking from WebSocket
     const wsRef = useRef(null); // WebSocket reference
-    
+
     // Video selection state
     const [editingChapter, setEditingChapter] = useState(null);
     const [videoSearchQuery, setVideoSearchQuery] = useState('');
@@ -57,7 +57,7 @@ export default function LearningPage() {
         try {
             // Tell backend this chapter is pending video assignment
             await ai.setPendingChapter(planId, chapterNumber);
-            
+
             // Also tell extension directly via content script (if running on this page)
             window.postMessage({
                 type: 'POLARIS_SET_PENDING_CHAPTER',
@@ -69,7 +69,7 @@ export default function LearningPage() {
         } catch (e) {
             console.debug('[Learning] Failed to set pending chapter:', e.message);
         }
-        
+
         // Open YouTube search in new tab
         window.open(`https://www.youtube.com/results?search_query=${searchQuery}`, '_blank');
     };
@@ -83,6 +83,10 @@ export default function LearningPage() {
                 ]);
                 setDocuments(docs);
                 setStudyPlans(plans);
+                // Auto-select the first study plan
+                if (plans.length > 0 && !selectedPlan) {
+                    setSelectedPlan(plans[0].id);
+                }
             } finally {
                 setLoading(false);
             }
@@ -181,7 +185,7 @@ export default function LearningPage() {
         try {
             const result = await ai.markChapterComplete(selectedPlan, chapterNumber);
             await loadPlanProgress(selectedPlan);
-            
+
             if (result.all_chapters_completed && result.quiz_unlocked) {
                 alert('🎉 All chapters completed! Quiz is now unlocked.');
             } else {
@@ -197,7 +201,7 @@ export default function LearningPage() {
         setQuizAnswers({});
         setQuizResult(null);
         setQuizTerminated(false);
-        
+
         // Enter fullscreen automatically
         setTimeout(() => {
             const elem = document.documentElement;
@@ -216,15 +220,15 @@ export default function LearningPage() {
     // Auto-submit quiz if tab is switched
     const handleQuizTermination = async (reason) => {
         if (quizTerminated || quizResult) return; // Already terminated or completed
-        
+
         setQuizTerminated(true);
         console.log(`[Quiz Terminated] ${reason}`);
-        
+
         // Exit fullscreen
         if (document.fullscreenElement) {
-            document.exitFullscreen().catch(() => {});
+            document.exitFullscreen().catch(() => { });
         }
-        
+
         // Auto-submit with current answers
         if (selectedPlan && !quizResult) {
             setSubmittingQuiz(true);
@@ -235,7 +239,7 @@ export default function LearningPage() {
                     terminated: true,
                     termination_reason: reason
                 });
-                
+
                 // Reload quiz attempts to show new score
                 await loadQuizAttempts(selectedPlan);
             } catch (err) {
@@ -281,7 +285,7 @@ export default function LearningPage() {
 
     useEffect(() => {
         if (quizResult && document.fullscreenElement) {
-            document.exitFullscreen().catch(() => {});
+            document.exitFullscreen().catch(() => { });
         }
     }, [quizResult]);
 
@@ -291,10 +295,10 @@ export default function LearningPage() {
 
     const handleSubmitQuiz = async () => {
         if (!selectedPlan) return;
-        
+
         const plan = studyPlans.find(p => p.id === selectedPlan);
         const totalQuestions = plan?.plan_data?.quiz?.length || 0;
-        
+
         if (Object.keys(quizAnswers).length < totalQuestions) {
             alert('Please answer all questions before submitting.');
             return;
@@ -304,13 +308,13 @@ export default function LearningPage() {
         try {
             const result = await ai.submitPlanQuiz(selectedPlan, quizAnswers);
             setQuizResult(result);
-            
+
             // Reload quiz attempts to show new score
             await loadQuizAttempts(selectedPlan);
-            
+
             // Exit fullscreen after completion
             if (document.fullscreenElement) {
-                document.exitFullscreen().catch(() => {});
+                document.exitFullscreen().catch(() => { });
             }
         } catch (err) {
             alert(err.message);
@@ -330,7 +334,7 @@ export default function LearningPage() {
             alert(err.message);
         }
     };
-    
+
     const formatDuration = (seconds) => {
         if (seconds < 60) return `${seconds}s`;
         const minutes = Math.floor(seconds / 60);
@@ -354,7 +358,7 @@ export default function LearningPage() {
     const currentPlan = studyPlans.find(p => p.id === selectedPlan);
     const chapters = currentPlan?.plan_data?.chapters || [];
     const quiz = currentPlan?.plan_data?.quiz || [];
-    
+
     // Check quiz unlock status from progress endpoint (auto-unlocks if all chapters done)
     const isQuizUnlocked = planProgress?.quiz_unlocked || currentPlan?.quiz_unlocked || false;
 
@@ -503,11 +507,10 @@ export default function LearningPage() {
                                     setShowQuiz(false);
                                     setQuizResult(null);
                                 }}
-                                className={`px-6 py-2.5 rounded-full text-[11px] font-medium uppercase tracking-widest transition-all border ${
-                                    selectedPlan === plan.id 
-                                    ? 'bg-white text-black border-white shadow-2xl' 
+                                className={`px-6 py-2.5 rounded-full text-[11px] font-medium uppercase tracking-widest transition-all border ${selectedPlan === plan.id
+                                    ? 'bg-white text-black border-white shadow-2xl'
                                     : 'bg-white/5 text-zinc-500 border-white/5 hover:border-white/20 hover:text-white'
-                                }`}
+                                    }`}
                             >
                                 {plan.title || plan.goal}
                             </button>
@@ -546,7 +549,7 @@ export default function LearningPage() {
                                     <Youtube size={16} className="text-zinc-400" />
                                     <h3 className="text-[11px] font-bold uppercase tracking-[0.2em] text-zinc-400">Knowledge Modules</h3>
                                 </div>
-                                
+
                                 {/* Live Tracking Indicator */}
                                 {liveActivity && liveActivity.domain && (liveActivity.domain === 'youtube.com' || liveActivity.domain === 'youtu.be') && liveActivity.page_title && (
                                     <div className="bg-white/5 border border-white/10 p-6 rounded-3xl flex items-center justify-between animate-in slide-in-from-top-2">
@@ -578,18 +581,16 @@ export default function LearningPage() {
                                         return (
                                             <div
                                                 key={chapter.chapter_number}
-                                                className={`group relative p-8 rounded-[32px] border border-white/5 transition-all shadow-xl ${
-                                                    isCompleted 
-                                                    ? 'bg-white/10 border-white/20' 
+                                                className={`group relative p-8 rounded-[32px] border border-white/5 transition-all shadow-xl ${isCompleted
+                                                    ? 'bg-white/10 border-white/20'
                                                     : 'bg-white/5 hover:border-white/10'
-                                                }`}
+                                                    }`}
                                             >
                                                 <div className="flex flex-col md:flex-row gap-8">
                                                     <div className="flex-1">
                                                         <div className="flex items-center gap-4 mb-4">
-                                                            <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-[13px] font-semibold border transition-all ${
-                                                                isCompleted ? 'bg-white text-black border-white' : 'bg-black text-zinc-500 border-white/5'
-                                                            }`}>
+                                                            <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-[13px] font-semibold border transition-all ${isCompleted ? 'bg-white text-black border-white' : 'bg-black text-zinc-500 border-white/5'
+                                                                }`}>
                                                                 {chapter.chapter_number}
                                                             </div>
                                                             <h4 className="text-xl font-semibold text-white tracking-tight">
@@ -623,7 +624,7 @@ export default function LearningPage() {
                                                                     <div className="text-[10px] font-bold text-white tracking-widest uppercase">{Math.round(progressPercentage)}% Intake</div>
                                                                 </div>
                                                                 <div className="w-full h-1 bg-white/5 rounded-full overflow-hidden">
-                                                                    <div 
+                                                                    <div
                                                                         className="h-full bg-white transition-all duration-1000 shadow-[0_0_8px_rgba(255,255,255,0.5)]"
                                                                         style={{ width: `${progressPercentage}%` }}
                                                                     />
@@ -656,14 +657,24 @@ export default function LearningPage() {
                                                                 <Search size={14} /> Connect Node
                                                             </button>
                                                         )}
-                                                        
+
                                                         <div className="flex gap-2">
                                                             {hasVideo && (
                                                                 <button
                                                                     onClick={() => handleSearchYouTube(selectedPlan, chapter.chapter_number, searchQuery)}
                                                                     className="flex-1 p-3 bg-white/5 border border-white/5 rounded-xl text-zinc-500 hover:text-white hover:border-white/20 transition-all"
+                                                                    title="Search for a different video"
                                                                 >
                                                                     <Search size={14} />
+                                                                </button>
+                                                            )}
+                                                            {hasVideo && (
+                                                                <button
+                                                                    onClick={() => handleResetChapter(chapter.chapter_number)}
+                                                                    className="flex-1 p-3 bg-white/5 border border-white/5 rounded-xl text-zinc-500 hover:text-red-400 hover:border-red-400/30 transition-all"
+                                                                    title="Reset video — clear assignment and pick a new one"
+                                                                >
+                                                                    <RefreshCw size={14} />
                                                                 </button>
                                                             )}
                                                             {!isCompleted && hasVideo && progressPercentage >= 90 && (
@@ -687,8 +698,8 @@ export default function LearningPage() {
                     {/* Quiz Section */}
                     {!showQuiz && !quizResult && quiz.length > 0 && (
                         <div className="mt-12 p-12 bg-zinc-900 border border-white/5 rounded-[40px] text-white overflow-hidden relative shadow-3xl">
-                             <div className="absolute top-0 right-0 w-96 h-96 bg-white/5 rounded-full -mr-48 -mt-48 blur-3xl opacity-50" />
-                             
+                            <div className="absolute top-0 right-0 w-96 h-96 bg-white/5 rounded-full -mr-48 -mt-48 blur-3xl opacity-50" />
+
                             {isQuizUnlocked ? (
                                 <div className="flex flex-col md:flex-row items-center justify-between gap-12 relative z-10">
                                     <div className="flex-1">
@@ -701,7 +712,7 @@ export default function LearningPage() {
                                         <p className="text-zinc-500 text-[13px] font-light leading-relaxed mb-8 max-w-xl">
                                             Curriculum complete. Complete this {quiz.length}-question assessment to synchronize and validate mastery of this neural path.
                                         </p>
-                                        
+
                                         {/* Quiz Attempt History */}
                                         {quizAttempts.length > 0 && (
                                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -719,9 +730,9 @@ export default function LearningPage() {
                                             </div>
                                         )}
                                     </div>
-                                    
-                                    <button 
-                                        onClick={handleStartQuiz} 
+
+                                    <button
+                                        onClick={handleStartQuiz}
                                         className="group w-full md:w-auto bg-white text-black px-12 py-5 rounded-full font-bold uppercase tracking-widest text-[11px] hover:opacity-90 transition-all shadow-2xl"
                                     >
                                         {quizAttempts.length > 0 ? 'Recertify Core' : 'Start Assessment'}
@@ -773,16 +784,15 @@ export default function LearningPage() {
                                                     {question.question}
                                                 </h3>
                                             </div>
-                                            
+
                                             <div className="grid grid-cols-1 gap-3 ml-20">
                                                 {question.options.map((option, oIdx) => (
                                                     <label
                                                         key={oIdx}
-                                                        className={`group relative flex items-center p-5 rounded-2xl border transition-all cursor-pointer ${
-                                                            quizAnswers[qIdx] === oIdx 
-                                                            ? 'bg-white text-black border-white shadow-3xl' 
+                                                        className={`group relative flex items-center p-5 rounded-2xl border transition-all cursor-pointer ${quizAnswers[qIdx] === oIdx
+                                                            ? 'bg-white text-black border-white shadow-3xl'
                                                             : 'bg-white/5 text-zinc-500 border-white/5 hover:border-white/20 hover:text-white'
-                                                        }`}
+                                                            }`}
                                                     >
                                                         <input
                                                             type="radio"
@@ -791,9 +801,8 @@ export default function LearningPage() {
                                                             onChange={() => handleQuizAnswer(qIdx, oIdx)}
                                                             className="sr-only"
                                                         />
-                                                        <div className={`w-5 h-5 rounded-full border-2 mr-4 flex items-center justify-center transition-all ${
-                                                            quizAnswers[qIdx] === oIdx ? 'bg-white border-white' : 'border-zinc-200 group-hover:border-black'
-                                                        }`}>
+                                                        <div className={`w-5 h-5 rounded-full border-2 mr-4 flex items-center justify-center transition-all ${quizAnswers[qIdx] === oIdx ? 'bg-white border-white' : 'border-zinc-200 group-hover:border-black'
+                                                            }`}>
                                                             {quizAnswers[qIdx] === oIdx && <div className="w-2 h-2 bg-black rounded-full" />}
                                                         </div>
                                                         <span className="text-sm font-bold tracking-tight">{option}</span>
@@ -825,9 +834,8 @@ export default function LearningPage() {
                                         {quizResult.score.toFixed(0)}<span className="text-3xl font-medium">%</span>
                                     </div>
                                     <div className="text-[10px] font-bold uppercase tracking-[0.4em] text-zinc-400 mb-10">Neural Quotient</div>
-                                    <div className={`px-8 py-3 rounded-full text-[9px] font-bold uppercase tracking-widest border ${
-                                        quizResult.score >= 70 ? 'bg-black text-white border-black' : 'bg-zinc-100 text-zinc-400 border-transparent'
-                                    }`}>
+                                    <div className={`px-8 py-3 rounded-full text-[9px] font-bold uppercase tracking-widest border ${quizResult.score >= 70 ? 'bg-black text-white border-black' : 'bg-zinc-100 text-zinc-400 border-transparent'
+                                        }`}>
                                         {quizResult.score >= 70 ? 'Certification Granted' : 'Retake Required'}
                                     </div>
                                 </div>
@@ -843,9 +851,9 @@ export default function LearningPage() {
                                     )}
                                     <h3 className="text-2xl font-semibold text-white mb-4 tracking-tight">Assessment Analysis</h3>
                                     <p className="text-zinc-500 text-[14px] font-light leading-relaxed tracking-wide">
-                                        You correctly identified <span className="text-white font-medium underline underline-offset-4">{quizResult.correct_answers} out of {quizResult.total_questions}</span> key concepts. 
-                                        {quizResult.score >= 70 
-                                            ? " Optimal cognitive retention achieved. Knowledge integration successful." 
+                                        You correctly identified <span className="text-white font-medium underline underline-offset-4">{quizResult.correct_answers} out of {quizResult.total_questions}</span> key concepts.
+                                        {quizResult.score >= 70
+                                            ? " Optimal cognitive retention achieved. Knowledge integration successful."
                                             : " Baseline proficiency threshold not met. Theoretical reinforcement recommended."}
                                     </p>
                                 </div>
@@ -855,19 +863,17 @@ export default function LearningPage() {
                                 <h3 className="text-[10px] font-bold uppercase tracking-[0.5em] text-zinc-700 flex items-center gap-3 px-4 mb-2">
                                     <MessageSquare size={14} /> Item Response Analysis
                                 </h3>
-                                
+
                                 <div className="space-y-6">
                                     {quizResult.results.map((result, idx) => (
                                         <div
                                             key={idx}
-                                            className={`p-10 rounded-[48px] border transition-all ${
-                                                result.correct ? 'bg-white/5 border-white/5' : 'bg-zinc-900 border-white/10 hover:border-white/20'
-                                            }`}
+                                            className={`p-10 rounded-[48px] border transition-all ${result.correct ? 'bg-white/5 border-white/5' : 'bg-zinc-900 border-white/10 hover:border-white/20'
+                                                }`}
                                         >
                                             <div className="flex flex-col md:flex-row gap-10">
-                                                <div className={`w-16 h-16 rounded-[24px] flex items-center justify-center shrink-0 border transition-all ${
-                                                    result.correct ? 'bg-white text-black border-white' : 'bg-black text-white border-white/10'
-                                                }`}>
+                                                <div className={`w-16 h-16 rounded-[24px] flex items-center justify-center shrink-0 border transition-all ${result.correct ? 'bg-white text-black border-white' : 'bg-black text-white border-white/10'
+                                                    }`}>
                                                     {result.correct ? <Check size={28} strokeWidth={3} /> : <X size={28} strokeWidth={3} />}
                                                 </div>
                                                 <div className="flex-1 space-y-6">
@@ -877,7 +883,7 @@ export default function LearningPage() {
                                                             {quiz[result.question_number]?.question}
                                                         </h4>
                                                     </div>
- 
+
                                                     {!result.correct && (
                                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                                             <div className="p-6 bg-black/40 rounded-3xl border border-white/5">
@@ -890,7 +896,7 @@ export default function LearningPage() {
                                                             </div>
                                                         </div>
                                                     )}
- 
+
                                                     {result.explanation && (
                                                         <div className="p-8 bg-black/20 border border-white/5 rounded-3xl flex gap-6 group/expl">
                                                             <Lightbulb className="text-zinc-700 group-hover:text-white transition-colors shrink-0" size={20} />
