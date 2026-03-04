@@ -542,6 +542,55 @@ export default function LearningPage() {
                             ) : null}
                         </div>
 
+                        {/* Daily Schedule Strip */}
+                        {currentPlan.plan_data?.daily_schedule?.length > 0 && !showQuiz && !quizResult && (
+                            <div className="mb-10">
+                                <div className="flex items-center gap-2 mb-4">
+                                    <Clock size={14} className="text-zinc-600" />
+                                    <h3 className="text-[10px] font-bold uppercase tracking-[0.3em] text-zinc-600">Daily Schedule</h3>
+                                </div>
+                                <div className="flex gap-3 overflow-x-auto pb-2" style={{ scrollbarWidth: 'none' }}>
+                                    {currentPlan.plan_data.daily_schedule.map((day) => {
+                                        const dayChapters = day.chapters || [];
+                                        const completedInDay = dayChapters.filter(chNum =>
+                                            planProgress?.chapters?.find(c => c.chapter_index === chNum)?.is_completed
+                                        ).length;
+                                        const allDone = dayChapters.length > 0 && completedInDay === dayChapters.length;
+                                        const hours = Math.floor((day.estimated_time_minutes || 60) / 60);
+                                        const mins = (day.estimated_time_minutes || 60) % 60;
+                                        const timeStr = hours > 0 ? `${hours}h${mins > 0 ? ` ${mins}m` : ''}` : `${mins}m`;
+
+                                        return (
+                                            <div
+                                                key={day.day}
+                                                className={`shrink-0 w-36 p-4 rounded-2xl border transition-all ${allDone
+                                                    ? 'bg-white/10 border-white/20'
+                                                    : 'bg-white/5 border-white/5'
+                                                    }`}
+                                            >
+                                                <div className={`text-[9px] font-bold uppercase tracking-[0.3em] mb-2 ${allDone ? 'text-white' : 'text-zinc-600'}`}>
+                                                    Day {day.day}
+                                                </div>
+                                                <div className="text-[11px] font-medium text-white mb-3 leading-tight line-clamp-2 min-h-[2rem]">
+                                                    {day.topics_focus}
+                                                </div>
+                                                <div className="flex items-center gap-1 text-zinc-600 text-[9px] mb-2">
+                                                    <Clock size={9} />
+                                                    <span className="font-bold">~{timeStr}</span>
+                                                </div>
+                                                <div className="text-[9px] text-zinc-700 font-medium">
+                                                    Ch {dayChapters.join(', ')}
+                                                </div>
+                                                {allDone && (
+                                                    <div className="mt-2 text-[8px] font-bold uppercase tracking-widest text-white">✓ Done</div>
+                                                )}
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+                        )}
+
                         {/* Chapters Section */}
                         {!showQuiz && !quizResult && (
                             <div className="space-y-8">
