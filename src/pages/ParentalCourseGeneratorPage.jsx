@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { BookOpen, Upload, Brain, Loader2, FileText, Users, Calendar, RefreshCw, ChevronRight } from 'lucide-react';
+import { BookOpen, Upload, Brain, Loader2, FileText, Users, Calendar, RefreshCw, ChevronRight, X } from 'lucide-react';
 import { parental } from '../api';
 
 export default function ParentalCourseGeneratorPage() {
@@ -8,12 +8,15 @@ export default function ParentalCourseGeneratorPage() {
     const [documents, setDocuments] = useState([]);
     const [studyPlans, setStudyPlans] = useState([]);
     const [progressMap, setProgressMap] = useState({});
+    const [quizAttemptsMap, setQuizAttemptsMap] = useState({});
 
     const [uploading, setUploading] = useState(false);
     const [creating, setCreating] = useState(false);
     const [loading, setLoading] = useState(true);
 
     const [planForm, setPlanForm] = useState({ goal: '', duration_days: 14, document_id: '' });
+    const [selectedPlan, setSelectedPlan] = useState(null);
+    const [selectedQuizData, setSelectedQuizData] = useState(null);
 
     const selectedChild = useMemo(
         () => connections.find((c) => c.user_id === selectedChildId),
@@ -68,11 +71,25 @@ export default function ParentalCourseGeneratorPage() {
                 })
             );
             setProgressMap(Object.fromEntries(progressEntries));
+
+            // Load quiz attempts for all plans
+            const quizEntries = await Promise.all(
+                plans.map(async (plan) => {
+                    try {
+                        const q = await parental.getChildStudyPlanQuizAttempts(childId, plan.id);
+                        return [plan.id, q];
+                    } catch {
+                        return [plan.id, null];
+                    }
+                })
+            );
+            setQuizAttemptsMap(Object.fromEntries(quizEntries));
         } catch (e) {
             console.error('Failed to load child course data', e);
             setDocuments([]);
             setStudyPlans([]);
             setProgressMap({});
+            setQuizAttemptsMap({});
         }
     }
 
@@ -112,6 +129,17 @@ export default function ParentalCourseGeneratorPage() {
         } finally {
             setCreating(false);
         }
+    }
+
+    function openCourseModal(plan) {
+        setSelectedPlan(plan);
+        const quizData = quizAttemptsMap[plan.id];
+        setSelectedQuizData(quizData);
+    }
+
+    function closeCourseModal() {
+        setSelectedPlan(null);
+        setSelectedQuizData(null);
     }
 
     if (loading) {
@@ -273,18 +301,21 @@ export default function ParentalCourseGeneratorPage() {
                             <div className="flex flex-wrap gap-3">
                                 {studyPlans.map((plan) => {
                                     const progress = progressMap[plan.id];
+                                    const quizData = quizAttemptsMap[plan.id];
                                     const completed = progress?.completed_chapters || 0;
                                     const total = progress?.total_chapters || 0;
                                     const pct = total > 0 ? Math.round((completed / total) * 100) : 0;
+                                    const bestAttempt = quizData?.attempts?.[0];
+                                    const isCourseCompleted = pct === 100;
 
                                     return (
-                                        <div key={plan.id} className="group flex-1 min-w-[280px] p-5 rounded-[20px] border border-white/10 bg-zinc-900/50 hover:bg-zinc-900/80 hover:border-white/20 transition-all cursor-pointer">
+                                        <div key={plan.id} className="group flex-1 min-w-[280px] p-5 rounded-[20px] border border-white/10 bg-zinc-900/50 hover:bg-zinc-900/80 hover:border-white/20 transition-all cursor-pointer" onClick={() => openCourseModal(plan)}>
                                             <div className="flex items-start justify-between gap-3 mb-3">
                                                 <h4 className="text-[12px] font-semibold text-white line-clamp-2">{plan.title}</h4>
                                                 <ChevronRight size={12} className="text-zinc-700 group-hover:text-zinc-500 transition-colors flex-shrink-0 mt-0.5" />
                                             </div>
                                             <p className="text-[11px] text-zinc-500 line-clamp-1 mb-3">{plan.goal}</p>
-                                            <div className="space-y-2">
+                                            <div className="space-y-2 mb-3">
                                                 <div className="flex items-center justify-between text-[9px] font-medium uppercase tracking-widest text-zinc-600">
                                                     <span>Progress</span>
                                                     <span>{pct}%</span>
@@ -299,12 +330,116 @@ export default function ParentalCourseGeneratorPage() {
                                                     {completed}/{total} chapters • {plan.duration_days}d course
                                                 </div>
                                             </div>
+                                            {isCourseCompleted && bestAttempt && (
+                                                <div className="pt-3 border-t border-white/10 text-[9px] text-zinc-500 font-medium">
+                                                    <div className="text-[8px] font-bold uppercase tracking-widest text-zinc-700 mb-2">Quiz Results</div>
+                                                    <div className="flex items-center justify-between">
+                                                        <span>Score: {bestAttempt.score}/{bestAttempt.max_score} ({bestAttempt.percentage}%)</span>
+                                                        <span>{quizData.attempts.length} {quizData.attempts.length === 1 ? 'attempt' : 'attempts'}</span>
+                                                    </div>
+                                                </div>
+                                            )}
                                         </div>
                                     );
                                 })}
                             </div>
                         </div>
                     )}
+                </div>
+            )}
+
+            {/* Course Detail Modal */}
+            {selectedPlan && (
+                <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 font-outfit">
+                    <div className="bg-zinc-900 border border-white/10 rounded-[24px] max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl">
+                        {/* Modal Header */}
+                        <div className="sticky top-0 bg-gradient-to-b from-zinc-900 to-zinc-900/80 border-b border-white/10 p-6 flex items-start justify-between gap-4">
+                            <div className="flex-1">
+                                <h2 className="text-[18px] font-bold text-white mb-1">{selectedPlan.title}</h2>
+                                <p className="text-[12px] text-zinc-500">{selectedPlan.goal}</p>
+                            </div>
+                            <button onClick={closeCourseModal} className="p-2 hover:bg-white/10 rounded-full transition-colors flex-shrink-0">
+                                <X size={16} className="text-zinc-400" />
+                            </button>
+                        </div>
+
+                        {/* Modal Content */}
+                        <div className="p-6 space-y-6">
+                            {/* Course Overview */}
+                            <div className="space-y-4">
+                                <div className="text-[11px] font-bold uppercase tracking-widest text-zinc-600 mb-3">Course Details</div>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div className="p-3 bg-white/5 border border-white/10 rounded-[12px]">
+                                        <div className="text-[9px] font-medium uppercase text-zinc-600 mb-1">Duration</div>
+                                        <div className="text-[13px] font-semibold text-white">{selectedPlan.duration_days} Days</div>
+                                    </div>
+                                    <div className="p-3 bg-white/5 border border-white/10 rounded-[12px]">
+                                        <div className="text-[9px] font-medium uppercase text-zinc-600 mb-1">Status</div>
+                                        <div className="text-[13px] font-semibold text-white">
+                                            {progressMap[selectedPlan.id]?.completed_chapters === progressMap[selectedPlan.id]?.total_chapters ? 'Completed ✓' : 'In Progress'}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Progress Overview */}
+                            {progressMap[selectedPlan.id] && (
+                                <div className="space-y-3">
+                                    <div className="flex items-center justify-between">
+                                        <span className="text-[9px] font-bold uppercase tracking-widest text-zinc-600">Chapter Progress</span>
+                                        <span className="text-[9px] font-bold text-zinc-400">
+                                            {progressMap[selectedPlan.id].completed_chapters}/{progressMap[selectedPlan.id].total_chapters}
+                                        </span>
+                                    </div>
+                                    <div className="w-full h-2 bg-zinc-800 rounded-full overflow-hidden">
+                                        <div
+                                            className="h-full bg-white transition-all"
+                                            style={{
+                                                width: `${progressMap[selectedPlan.id].total_chapters > 0 ? Math.round((progressMap[selectedPlan.id].completed_chapters / progressMap[selectedPlan.id].total_chapters) * 100) : 0}%`,
+                                            }}
+                                        />
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Quiz Attempts */}
+                            {selectedQuizData && (
+                                <div className="space-y-4">
+                                    <div className="text-[11px] font-bold uppercase tracking-widest text-zinc-600">Quiz Performance</div>
+                                    {selectedQuizData.attempts && selectedQuizData.attempts.length > 0 ? (
+                                        <div className="space-y-3">
+                                            {selectedQuizData.attempts.map((attempt, idx) => (
+                                                <div key={attempt.id} className="p-4 bg-white/5 border border-white/10 rounded-[12px]">
+                                                    <div className="flex items-start justify-between mb-2">
+                                                        <div>
+                                                            <div className="text-[10px] font-bold uppercase text-zinc-500 tracking-widest">Attempt {idx + 1}</div>
+                                                            <div className="text-[12px] font-semibold text-white mt-1">
+                                                                {attempt.score.toFixed(1)}/{attempt.max_score.toFixed(1)} ({attempt.percentage.toFixed(1)}%)
+                                                            </div>
+                                                        </div>
+                                                        <div className="text-[9px] text-zinc-600 text-right">
+                                                            {new Date(attempt.created_at).toLocaleDateString()}
+                                                            <br />
+                                                            {new Date(attempt.created_at).toLocaleTimeString()}
+                                                        </div>
+                                                    </div>
+                                                    <div className="flex items-center justify-between text-[9px] text-zinc-500 mt-2">
+                                                        <span className="uppercase tracking-widest">
+                                                            {attempt.total_questions} questions • {attempt.difficulty || 'Standard'}
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    ) : (
+                                        <div className="p-4 bg-white/5 border border-dashed border-white/10 rounded-[12px] text-center">
+                                            <p className="text-[11px] text-zinc-500">No quiz attempts yet</p>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+                        </div>
+                    </div>
                 </div>
             )}
         </div>

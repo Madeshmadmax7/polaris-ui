@@ -144,6 +144,7 @@ export const parental = {
     }),
     getChildStudyPlans: (childId) => request(`/parental/child/${childId}/study-plans`),
     getChildStudyPlanProgress: (childId, planId) => request(`/parental/child/${childId}/study-plan/${planId}/progress`),
+    getChildStudyPlanQuizAttempts: (childId, planId) => request(`/parental/child/${childId}/study-plan/${planId}/quiz-attempts`),
     getMyConnections: () => request('/parental/my-connections'),
     getPendingRequests: () => request('/parental/pending-requests'),
     disconnect: (connectionId) => request(`/parental/disconnect/${connectionId}`, { method: 'POST' }),

@@ -418,7 +418,7 @@ export default function SkillTree() {
                                                         </span>
                                                         {sub.matchedPlan && (
                                                             <div style={{ fontSize: '9px', color: 'rgba(255,255,255,0.2)', marginTop: '2px' }}>
-                                                                📘 {sub.matchedPlan}
+                                                                {sub.matchedPlan}
                                                             </div>
                                                         )}
                                                     </div>
@@ -439,7 +439,7 @@ export default function SkillTree() {
                             {state === 'not-started' && (
                                 <div style={{ marginTop: '16px', padding: '14px', borderRadius: '12px', background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)', textAlign: 'center' }}>
                                     <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.3)' }}>
-                                        💡 Go to <strong style={{ color: '#fff' }}>Learning</strong> → create a study plan matching a subtopic above to start tracking progress.
+                                        Go to <strong style={{ color: '#fff' }}>Learning</strong> → create a study plan matching a subtopic above to start tracking progress.
                                     </span>
                                 </div>
                             )}
