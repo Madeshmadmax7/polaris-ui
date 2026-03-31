@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { Download, Chrome, Puzzle, LogIn, MonitorUp, BookOpen, Shield, Zap, ArrowRight, CheckCircle2, AlertTriangle } from 'lucide-react';
 
 const DocsPage = () => {
-    const EXTENSION_DOWNLOAD_URL = 'https://drive.google.com/uc?export=download&id=10sg7_wK4LLzH-yYY8YQoKX-5GW3xTDxd';
+    const EXTENSION_DOWNLOAD_URL = 'https://drive.google.com/uc?export=download&id=1RKIKl8Ey1AYnWbglWAIXEgxKzQJibz3q';
 
     const steps = [
         {
