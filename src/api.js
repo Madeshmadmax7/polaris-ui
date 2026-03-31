@@ -2,8 +2,10 @@
  * Polaris – API Client (Frontend Dashboard)
  */
 
-// Use same-origin API base in dev; Vite proxy forwards /api to backend.
-const API_BASE = '/api';
+// In production (Netlify), hit the Render backend directly.
+// In local dev, Vite proxy forwards /api to localhost:8000.
+const IS_PROD = window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1';
+const API_BASE = IS_PROD ? 'https://polaris-api-wf4d.onrender.com/api' : '/api';
 
 function getToken() {
     return localStorage.getItem('polaris_token');
@@ -153,8 +155,9 @@ export const parental = {
 
 // ── WebSocket ───────────────────────────────────────
 export function connectDashboardWS(token, onMessage) {
-    const host = window.location.hostname === 'localhost' ? 'localhost' : '127.0.0.1';
-    const url = `ws://${host}:8000/ws?token=${encodeURIComponent(token)}`;
+    const wsUrl = IS_PROD
+        ? `wss://polaris-api-wf4d.onrender.com/ws?token=${encodeURIComponent(token)}`
+        : `ws://127.0.0.1:8000/ws?token=${encodeURIComponent(token)}`;
     let ws;
     let alive = true;
     let reconnectAttempts = 0;
@@ -171,7 +174,7 @@ export function connectDashboardWS(token, onMessage) {
         if (!alive) return;
         
         try {
-            ws = new WebSocket(url);
+            ws = new WebSocket(wsUrl);
             
             ws.onopen = () => {
                 console.log('[WS] Dashboard connected');
