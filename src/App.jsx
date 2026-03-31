@@ -29,6 +29,7 @@ import SettingsPage from './pages/SettingsPage';
 import NotificationsPage from './pages/NotificationsPage';
 import LandingPage from './pages/LandingPage';
 import FeaturesPage from './pages/FeaturesPage';
+import DocsPage from './pages/DocsPage';
 import { ManifestoPage, PrivacyPage, LogsPage, OptimizationPage, SecurityPage } from './pages/StaticPages';
 
 // ── Auth Context ────────────────────────────────────────
@@ -100,6 +101,7 @@ function Navbar() {
     ]) : [
         { to: '/', label: 'Home' },
         { to: '/features', label: 'Features' },
+        { to: '/docs', label: 'Get Started' },
     ];
 
     return (
@@ -292,6 +294,7 @@ export default function App() {
                         {/* Public Routes */}
                         <Route path="/" element={<AppLayout><LandingPage /></AppLayout>} />
                         <Route path="/features" element={<AppLayout><FeaturesPage /></AppLayout>} />
+                        <Route path="/docs" element={<AppLayout><DocsPage /></AppLayout>} />
                         <Route path="/login" element={<LoginPage />} />
                         <Route path="/register" element={<RegisterPage />} />
 

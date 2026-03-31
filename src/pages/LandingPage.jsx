@@ -31,8 +31,8 @@ const LandingPage = () => {
                     </p>
                     
                     <div className="flex flex-col sm:flex-row gap-4">
-                        <Link to="/register" className="bg-white text-black px-10 py-3 rounded-full font-bold text-[10px] uppercase tracking-[0.2em] hover:opacity-90 transition-all text-center">
-                            Initialize
+                        <Link to="/docs" className="bg-white text-black px-10 py-3 rounded-full font-bold text-[10px] uppercase tracking-[0.2em] hover:opacity-90 transition-all text-center">
+                            Get Started
                         </Link>
                         <Link to="/features" className="bg-transparent border border-white/20 text-white backdrop-blur-sm px-10 py-3 rounded-full font-bold text-[10px] uppercase tracking-[0.2em] hover:bg-white hover:text-black transition-all text-center">
                             View Manifest
