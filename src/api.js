@@ -2,8 +2,8 @@
  * Polaris – API Client (Frontend Dashboard)
  */
 
-// Always use the deployed Render backend
-const API_BASE = 'https://polaris-api-wf4d.onrender.com/api';
+// LOCAL DEVELOPMENT: pointing to local backend
+const API_BASE = 'http://localhost:8000/api';
 
 function getToken() {
     return localStorage.getItem('polaris_token');
@@ -153,7 +153,7 @@ export const parental = {
 
 // ── WebSocket ───────────────────────────────────────
 export function connectDashboardWS(token, onMessage) {
-    const wsUrl = `wss://polaris-api-wf4d.onrender.com/ws?token=${encodeURIComponent(token)}`;
+    const wsUrl = `ws://localhost:8000/ws?token=${encodeURIComponent(token)}`;
     let ws;
     let alive = true;
     let reconnectAttempts = 0;
