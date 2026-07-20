@@ -93,10 +93,10 @@ function Navbar() {
     ] : [
         { to: '/dashboard', label: 'Dashboard' },
         { to: '/productivity', label: 'Productivity' },
-        { to: '/learning', label: 'Learning' },
-        { to: '/quiz', label: 'Quizzes' },
-        { to: '/skill-tree', label: 'Skills' },
-        { to: '/analytics', label: 'Analytics' },
+        // { to: '/learning', label: 'Learning' },
+        // { to: '/quiz', label: 'Quizzes' },
+        // { to: '/skill-tree', label: 'Skills' },
+        // { to: '/analytics', label: 'Analytics' },
         { to: '/settings', label: 'Settings' },
     ]) : [
         { to: '/', label: 'Home' },
