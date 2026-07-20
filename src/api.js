@@ -2,8 +2,10 @@
  * Polaris – API Client (Frontend Dashboard)
  */
 
-// Always use the deployed Render backend
-const API_BASE = 'https://polaris-api-wf4d.onrender.com/api';
+// Use local backend if accessing from localhost/127.0.0.1, otherwise use deployed Render backend
+const API_BASE = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+    ? 'http://127.0.0.1:8000/api'
+    : 'https://polaris-api-wf4d.onrender.com/api';
 
 function getToken() {
     return localStorage.getItem('polaris_token');
@@ -101,59 +103,60 @@ export const productivity = {
     getTopicHeatmap: () => request('/productivity/topic-heatmap'),
 };
 
-// ── Parental ────────────────────────────────────────────
-export const parental = {
-    invite: (email) => request(`/parental/invite?child_email=${encodeURIComponent(email)}`, { method: 'POST' }),
-    acceptInvite: (code) => request(`/parental/accept-invite?invite_code=${code}`, { method: 'POST' }),
-    getChildren: () => request('/parental/children'),
-    getChildOverview: (id) => request(`/parental/child/${id}`),
-    blockSite: (data) => request('/parental/block', { method: 'POST', body: JSON.stringify(data) }),
-    unblockSite: (id, childId) => request(`/parental/unblock/${id}?child_id=${childId}`, { method: 'POST' }),
-    getBlockedSites: (id) => request(`/parental/blocked-sites/${id}`),
-    
-    // OTP-based connection system
-    requestConnection: (childEmail) => request('/parental/request-connection', {
-        method: 'POST',
-        body: JSON.stringify({ child_email: childEmail })
-    }),
-    getConnectionRequest: (connectionId) => request(`/parental/connection-request/${connectionId}`),
-    verifyConnection: (connectionId, otpCode) => request('/parental/verify-connection', {
-        method: 'POST',
-        body: JSON.stringify({ connection_id: connectionId, otp_code: otpCode })
-    }),
-    verifyConnectionByEmail: (childEmail, otpCode) => request('/parental/verify-connection-by-email', {
-        method: 'POST',
-        body: JSON.stringify({ child_email: childEmail, otp_code: otpCode })
-    }),
-    getChildToday: (childId) => request(`/parental/child/${childId}/today`),
-    getChildTrend: (childId, days = 14) => request(`/parental/child/${childId}/trend?days=${days}`),
-    getChildDashboardStats: (childId, params = {}) => {
-        const query = new URLSearchParams(params).toString();
-        return request(`/parental/child/${childId}/dashboard-stats${query ? '?' + query : ''}`);
-    },
-    getChildDashboard: (childId) => request(`/parental/child-dashboard/${childId}`),
-    uploadChildDocument: async (childId, file) => {
-        const formData = new FormData();
-        formData.append('file', file);
-        return request(`/parental/child/${childId}/upload-document`, { method: 'POST', body: formData });
-    },
-    getChildDocuments: (childId) => request(`/parental/child/${childId}/documents`),
-    createChildStudyPlan: (childId, data) => request(`/parental/child/${childId}/study-plan`, {
-        method: 'POST',
-        body: JSON.stringify(data)
-    }),
-    getChildStudyPlans: (childId) => request(`/parental/child/${childId}/study-plans`),
-    getChildStudyPlanProgress: (childId, planId) => request(`/parental/child/${childId}/study-plan/${planId}/progress`),
-    getChildStudyPlanQuizAttempts: (childId, planId) => request(`/parental/child/${childId}/study-plan/${planId}/quiz-attempts`),
-    getMyConnections: () => request('/parental/my-connections'),
-    getPendingRequests: () => request('/parental/pending-requests'),
-    disconnect: (connectionId) => request(`/parental/disconnect/${connectionId}`, { method: 'POST' }),
-    cancelPending: (connectionId) => request(`/parental/cancel-pending/${connectionId}`, { method: 'POST' }),
-};
+// [V2+] Parental API — uncomment when parental controls are enabled
+// export const parental = {
+//     invite: (email) => request(`/parental/invite?child_email=${encodeURIComponent(email)}`, { method: 'POST' }),
+//     acceptInvite: (code) => request(`/parental/accept-invite?invite_code=${code}`, { method: 'POST' }),
+//     getChildren: () => request('/parental/children'),
+//     getChildOverview: (id) => request(`/parental/child/${id}`),
+//     blockSite: (data) => request('/parental/block', { method: 'POST', body: JSON.stringify(data) }),
+//     unblockSite: (id, childId) => request(`/parental/unblock/${id}?child_id=${childId}`, { method: 'POST' }),
+//     getBlockedSites: (id) => request(`/parental/blocked-sites/${id}`),
+//     requestConnection: (childEmail) => request('/parental/request-connection', {
+//         method: 'POST',
+//         body: JSON.stringify({ child_email: childEmail })
+//     }),
+//     getConnectionRequest: (connectionId) => request(`/parental/connection-request/${connectionId}`),
+//     verifyConnection: (connectionId, otpCode) => request('/parental/verify-connection', {
+//         method: 'POST',
+//         body: JSON.stringify({ connection_id: connectionId, otp_code: otpCode })
+//     }),
+//     verifyConnectionByEmail: (childEmail, otpCode) => request('/parental/verify-connection-by-email', {
+//         method: 'POST',
+//         body: JSON.stringify({ child_email: childEmail, otp_code: otpCode })
+//     }),
+//     getChildToday: (childId) => request(`/parental/child/${childId}/today`),
+//     getChildTrend: (childId, days = 14) => request(`/parental/child/${childId}/trend?days=${days}`),
+//     getChildDashboardStats: (childId, params = {}) => {
+//         const query = new URLSearchParams(params).toString();
+//         return request(`/parental/child/${childId}/dashboard-stats${query ? '?' + query : ''}`);
+//     },
+//     getChildDashboard: (childId) => request(`/parental/child-dashboard/${childId}`),
+//     uploadChildDocument: async (childId, file) => {
+//         const formData = new FormData();
+//         formData.append('file', file);
+//         return request(`/parental/child/${childId}/upload-document`, { method: 'POST', body: formData });
+//     },
+//     getChildDocuments: (childId) => request(`/parental/child/${childId}/documents`),
+//     createChildStudyPlan: (childId, data) => request(`/parental/child/${childId}/study-plan`, {
+//         method: 'POST',
+//         body: JSON.stringify(data)
+//     }),
+//     getChildStudyPlans: (childId) => request(`/parental/child/${childId}/study-plans`),
+//     getChildStudyPlanProgress: (childId, planId) => request(`/parental/child/${childId}/study-plan/${planId}/progress`),
+//     getChildStudyPlanQuizAttempts: (childId, planId) => request(`/parental/child/${childId}/study-plan/${planId}/quiz-attempts`),
+//     getMyConnections: () => request('/parental/my-connections'),
+//     getPendingRequests: () => request('/parental/pending-requests'),
+//     disconnect: (connectionId) => request(`/parental/disconnect/${connectionId}`, { method: 'POST' }),
+//     cancelPending: (connectionId) => request(`/parental/cancel-pending/${connectionId}`, { method: 'POST' }),
+// };
 
 // ── WebSocket ───────────────────────────────────────
 export function connectDashboardWS(token, onMessage) {
-    const wsUrl = `wss://polaris-api-wf4d.onrender.com/ws?token=${encodeURIComponent(token)}`;
+    const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+    const wsUrl = isLocal
+        ? `ws://127.0.0.1:8000/ws?token=${encodeURIComponent(token)}`
+        : `wss://polaris-api-wf4d.onrender.com/ws?token=${encodeURIComponent(token)}`;
     let ws;
     let alive = true;
     let reconnectAttempts = 0;
@@ -220,62 +223,100 @@ export function connectDashboardWS(token, onMessage) {
     };
 }
 
-// ── AI / Learning ───────────────────────────────────────
-export const ai = {
-    uploadDocument: (file) => {
-        const formData = new FormData();
-        formData.append('file', file);
-        return request('/ai/upload', { method: 'POST', body: formData });
-    },
-    getDocuments: () => request('/ai/documents'),
-    createStudyPlan: (data) => request('/ai/study-plan', { method: 'POST', body: JSON.stringify(data) }),
-    getStudyPlans: () => request('/ai/study-plans'),
-    getStudyPlan: (id) => request(`/ai/study-plan/${id}`),
-    getStudyPlanProgress: (planId) => request(`/ai/study-plan/${planId}/progress`),
-    markChapterComplete: (planId, chapterNumber) => 
-        request(`/ai/study-plan/${planId}/chapter/${chapterNumber}/complete`, { method: 'POST' }),
-    updateChapterProgress: (planId, chapterNumber, watchedSeconds) =>
-        request(`/ai/study-plan/${planId}/chapter/${chapterNumber}/update-progress`, {
-            method: 'POST',
-            body: JSON.stringify({ watched_seconds: watchedSeconds })
-        }),
-    setChapterVideo: (planId, chapterNumber, videoUrl, videoDuration, creatorName) =>
-        request(`/ai/study-plan/${planId}/chapter/${chapterNumber}/set-video`, {
-            method: 'POST',
-            body: JSON.stringify({ 
-                video_url: videoUrl, 
-                video_duration_seconds: videoDuration,
-                creator_name: creatorName 
-            })
-        }),
-    setPendingChapter: (planId, chapterIndex) =>
-        request('/ai/set-pending-chapter', {
-            method: 'POST',
-            body: JSON.stringify({ plan_id: planId, chapter_index: chapterIndex })
-        }),
-    resetChapter: (planId, chapterNumber) =>
-        request(`/ai/study-plan/${planId}/chapter/${chapterNumber}/reset`, { method: 'POST' }),
-    getChapterSummary: (planId, chapterNumber) =>
-        request(`/ai/study-plan/${planId}/chapter/${chapterNumber}/summary`),
-    submitPlanQuiz: (planId, answers) => 
-        request(`/ai/study-plan/${planId}/quiz/submit`, { method: 'POST', body: JSON.stringify(answers) }),
-    getQuizAttempts: (planId) =>
-        request(`/ai/study-plan/${planId}/quiz-attempts`),
-    // options = { override_duration_days, override_difficulty, weak_topics } (all optional)
-    regenerateStudyPlan: (planId, options = null) =>
-        request(`/ai/study-plan/${planId}/regenerate`, {
-            method: 'POST',
-            body: JSON.stringify(options || {}),
-        }),
-    // Agent: analyze latest quiz attempt and return recommendations (no auto-changes)
-    analyzeQuizResult: (planId) =>
-        request(`/ai/study-plan/${planId}/analyze-quiz`),
-};
+// [V2+] AI / Learning API — uncomment when AI features are enabled
+// export const ai = {
+//     uploadDocument: (file) => {
+//         const formData = new FormData();
+//         formData.append('file', file);
+//         return request('/ai/upload', { method: 'POST', body: formData });
+//     },
+//     getDocuments: () => request('/ai/documents'),
+//     createStudyPlan: (data) => request('/ai/study-plan', { method: 'POST', body: JSON.stringify(data) }),
+//     getStudyPlans: () => request('/ai/study-plans'),
+//     getStudyPlan: (id) => request(`/ai/study-plan/${id}`),
+//     getStudyPlanProgress: (planId) => request(`/ai/study-plan/${planId}/progress`),
+//     markChapterComplete: (planId, chapterNumber) => 
+//         request(`/ai/study-plan/${planId}/chapter/${chapterNumber}/complete`, { method: 'POST' }),
+//     updateChapterProgress: (planId, chapterNumber, watchedSeconds) =>
+//         request(`/ai/study-plan/${planId}/chapter/${chapterNumber}/update-progress`, {
+//             method: 'POST',
+//             body: JSON.stringify({ watched_seconds: watchedSeconds })
+//         }),
+//     setChapterVideo: (planId, chapterNumber, videoUrl, videoDuration, creatorName) =>
+//         request(`/ai/study-plan/${planId}/chapter/${chapterNumber}/set-video`, {
+//             method: 'POST',
+//             body: JSON.stringify({ 
+//                 video_url: videoUrl, 
+//                 video_duration_seconds: videoDuration,
+//                 creator_name: creatorName 
+//             })
+//         }),
+//     setPendingChapter: (planId, chapterIndex) =>
+//         request('/ai/set-pending-chapter', {
+//             method: 'POST',
+//             body: JSON.stringify({ plan_id: planId, chapter_index: chapterIndex })
+//         }),
+//     resetChapter: (planId, chapterNumber) =>
+//         request(`/ai/study-plan/${planId}/chapter/${chapterNumber}/reset`, { method: 'POST' }),
+//     getChapterSummary: (planId, chapterNumber) =>
+//         request(`/ai/study-plan/${planId}/chapter/${chapterNumber}/summary`),
+//     submitPlanQuiz: (planId, answers) => 
+//         request(`/ai/study-plan/${planId}/quiz/submit`, { method: 'POST', body: JSON.stringify(answers) }),
+//     getQuizAttempts: (planId) =>
+//         request(`/ai/study-plan/${planId}/quiz-attempts`),
+//     regenerateStudyPlan: (planId, options = null) =>
+//         request(`/ai/study-plan/${planId}/regenerate`, {
+//             method: 'POST',
+//             body: JSON.stringify(options || {}),
+//         }),
+//     analyzeQuizResult: (planId) =>
+//         request(`/ai/study-plan/${planId}/analyze-quiz`),
+// };
 
-// ── Notifications ───────────────────────────────────────
-export const notifications = {
-    getAll: (limit = 20) => request(`/notifications?limit=${limit}`),
-    markAsRead: (notificationId) => request(`/notifications/${notificationId}/read`, { method: 'POST' }),
-    delete: (notificationId) => request(`/notifications/${notificationId}`, { method: 'DELETE' }),
-    clearAll: () => request('/notifications/clear-all', { method: 'POST' }),
-};
+// [V2+] Notifications API — uncomment when notifications are enabled
+// export const notifications = {
+//     getAll: (limit = 20) => request(`/notifications?limit=${limit}`),
+//     markAsRead: (notificationId) => request(`/notifications/${notificationId}/read`, { method: 'POST' }),
+//     delete: (notificationId) => request(`/notifications/${notificationId}`, { method: 'DELETE' }),
+//     clearAll: () => request('/notifications/clear-all', { method: 'POST' }),
+// };
+
+// [V2+] Knowledge Intelligence (LCIE) API — uncomment when knowledge features are enabled
+// export const knowledge = {
+//     ingest: (data) => request('/knowledge/ingest', { method: 'POST', body: JSON.stringify(data) }),
+//     getGraph: (category) => request(`/knowledge/graph${category ? '?category=' + encodeURIComponent(category) : ''}`),
+//     getNodes: (params = {}) => {
+//         const query = new URLSearchParams(params).toString();
+//         return request(`/knowledge/nodes${query ? '?' + query : ''}`);
+//     },
+//     deleteNode: (nodeId) => request(`/knowledge/nodes/${nodeId}`, { method: 'DELETE' }),
+//     getNodeSummary: (nodeId) => request(`/knowledge/summary/${nodeId}`),
+//     getStats: () => request('/knowledge/stats'),
+//     getSources: (params = {}) => {
+//         const query = new URLSearchParams(params).toString();
+//         return request(`/knowledge/sources${query ? '?' + query : ''}`);
+//     },
+//     getSessions: (params = {}) => {
+//         const query = new URLSearchParams(params).toString();
+//         return request(`/knowledge/sessions${query ? '?' + query : ''}`);
+//     },
+//     search: (q) => request(`/knowledge/search?q=${encodeURIComponent(q)}`),
+//     getTopics: () => request('/knowledge/topics'),
+// };
+
+// [V2+] Learning Path Discovery API — uncomment when learning path features are enabled
+// export const learningPath = {
+//     getAll: () => request('/learning-path'),
+//     getHistory: () => request('/learning-path/history'),
+//     triggerAnalysis: () => request('/learning-path/analyze', { method: 'POST' }),
+//     describe: (pathId) => request(`/learning-path/${pathId}/describe`, { method: 'POST' }),
+// };
+
+// [V2+] Knowledge Gaps API — uncomment when knowledge gaps features are enabled
+// export const knowledgeGap = {
+//     getAll: () => request('/knowledge-gaps'),
+//     getHistory: () => request('/knowledge-gaps/history'),
+//     getRecommendations: () => request('/knowledge-gaps/recommendations'),
+//     triggerAnalysis: () => request('/knowledge-gaps/analyze', { method: 'POST' }),
+// };
+

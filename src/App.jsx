@@ -3,34 +3,39 @@ import { useState, useEffect, createContext, useContext, lazy, Suspense } from '
 import { Menu, X, LogOut, LayoutDashboard, Zap, BookOpen, Settings, UserCircle, Shield, ChevronDown, GitBranch, BarChart3, Loader2 } from 'lucide-react';
 import { getUser, clearToken, auth as authApi, setToken, setUser as storeUser } from './api';
 
-// Notifications
-import NotificationBell from './components/NotificationBell';
+// [V2+] Notifications — uncomment when notifications are enabled
+// import NotificationBell from './components/NotificationBell';
 
-// Gamification
-import { XPProvider } from './gamification/context/XPContext';
-import XPBar from './gamification/components/XPBar';
+// [V2+] Gamification — uncomment when gamification is enabled
+// import { XPProvider } from './gamification/context/XPContext';
+// import XPBar from './gamification/components/XPBar';
 
-// Lazy-loaded gamification pages
-const SkillTreePage = lazy(() => import('./pages/SkillTree'));
-const AnalyticsPage = lazy(() => import('./pages/Analytics'));
+// [V2+] Lazy-loaded gamification pages
+// const SkillTreePage = lazy(() => import('./pages/SkillTree'));
+// const AnalyticsPage = lazy(() => import('./pages/Analytics'));
 
-// Pages
+// [V1] Core Pages
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import DashboardPage from './pages/DashboardPage';
 import ProductivityPage from './pages/ProductivityPage';
-import LearningPage from './pages/LearningPage';
-import QuizPage from './pages/QuizPage';
-import ParentalPage from './pages/ParentalPage';
-import ParentalStatusPage from './pages/ParentalStatusPage';
-import ParentalConnectionsPage from './pages/ParentalConnectionsPage';
-import ParentalCourseGeneratorPage from './pages/ParentalCourseGeneratorPage';
 import SettingsPage from './pages/SettingsPage';
-import NotificationsPage from './pages/NotificationsPage';
 import LandingPage from './pages/LandingPage';
 import FeaturesPage from './pages/FeaturesPage';
 import DocsPage from './pages/DocsPage';
 import { ManifestoPage, PrivacyPage, LogsPage, OptimizationPage, SecurityPage } from './pages/StaticPages';
+
+// [V2+] Advanced Pages — uncomment when ready
+// import LearningPage from './pages/LearningPage';
+// import KnowledgePage from './pages/KnowledgePage';
+// import LearningJourneyPage from './pages/LearningJourneyPage';
+// import KnowledgeGapsPage from './pages/KnowledgeGapsPage';
+// import QuizPage from './pages/QuizPage';
+// import ParentalPage from './pages/ParentalPage';
+// import ParentalStatusPage from './pages/ParentalStatusPage';
+// import ParentalConnectionsPage from './pages/ParentalConnectionsPage';
+// import ParentalCourseGeneratorPage from './pages/ParentalCourseGeneratorPage';
+// import NotificationsPage from './pages/NotificationsPage';
 
 // ── Auth Context ────────────────────────────────────────
 const AuthContext = createContext(null);
@@ -84,21 +89,20 @@ function Navbar() {
     const [isOpen, setIsOpen] = useState(false);
     const navigate = useNavigate();
 
-    const navItems = user ? (user.role === 'parent' ? [
-        { to: '/dashboard', label: 'Overview' },
-        { to: '/parental/status', label: 'Child Status' },
-        { to: '/parental/connections', label: 'Connections' },
-        { to: '/parental/courses', label: 'Course Generator' },
-        { to: '/settings', label: 'Settings' },
-    ] : [
+    const navItems = user ? [
+        // [V1] Core navigation only
         { to: '/dashboard', label: 'Dashboard' },
         { to: '/productivity', label: 'Productivity' },
-        { to: '/learning', label: 'Learning' },
-        { to: '/quiz', label: 'Quizzes' },
-        { to: '/skill-tree', label: 'Skills' },
-        { to: '/analytics', label: 'Analytics' },
         { to: '/settings', label: 'Settings' },
-    ]) : [
+        // [V2+] Advanced navigation — uncomment when ready
+        // { to: '/learning', label: 'Learning' },
+        // { to: '/knowledge', label: 'Knowledge' },
+        // { to: '/journey', label: 'Journey' },
+        // { to: '/gaps', label: 'Gaps' },
+        // { to: '/quiz', label: 'Quizzes' },
+        // { to: '/skill-tree', label: 'Skills' },
+        // { to: '/analytics', label: 'Analytics' },
+    ] : [
         { to: '/', label: 'Home' },
         { to: '/features', label: 'Features' },
         { to: '/docs', label: 'Get Started' },
@@ -137,10 +141,10 @@ function Navbar() {
                     {/* RIGHT — Notifications + XP bar + user + logout */}
                     {user ? (
                         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexShrink: 0, marginLeft: '12px' }}>
-                            <NotificationBell />
-                            <div style={{ maxWidth: '200px' }}>
-                                <XPBar />
-                            </div>
+                            {/* [V2+] NotificationBell — uncomment when notifications are enabled */}
+                            {/* <NotificationBell /> */}
+                            {/* [V2+] XPBar — uncomment when gamification is enabled */}
+                            {/* <div style={{ maxWidth: '200px' }}><XPBar /></div> */}
                             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', flexShrink: 0 }}>
                                 <span className="text-[11px] font-medium text-white" style={{ whiteSpace: 'nowrap' }}>{user.username}</span>
                                 <span className="text-[8px] text-zinc-600 uppercase tracking-widest leading-none" style={{ marginTop: '2px' }}>{user.role}</span>
@@ -288,7 +292,7 @@ function GamificationFallback() {
 export default function App() {
     return (
         <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
-            <XPProvider>
+            {/* [V2+] Wrap with <XPProvider> when gamification is enabled */}
                 <AuthProvider>
                     <Routes>
                         {/* Public Routes */}
@@ -298,7 +302,7 @@ export default function App() {
                         <Route path="/login" element={<LoginPage />} />
                         <Route path="/register" element={<RegisterPage />} />
 
-                        {/* Protected Private Routes */}
+                        {/* [V1] Core Protected Routes */}
                         <Route path="/dashboard" element={
                             <ProtectedRoute>
                                 <AppLayout><DashboardPage /></AppLayout>
@@ -309,67 +313,28 @@ export default function App() {
                                 <AppLayout><ProductivityPage /></AppLayout>
                             </ProtectedRoute>
                         } />
-                        <Route path="/learning" element={
-                            <ProtectedRoute>
-                                <AppLayout><LearningPage /></AppLayout>
-                            </ProtectedRoute>
-                        } />
-                        <Route path="/quiz" element={
-                            <ProtectedRoute>
-                                <AppLayout><QuizPage /></AppLayout>
-                            </ProtectedRoute>
-                        } />
-                        <Route path="/parental" element={<Navigate to="/parental/status" replace />} />
-                        <Route path="/parental/status" element={
-                            <ProtectedRoute>
-                                <AppLayout><ParentalStatusPage /></AppLayout>
-                            </ProtectedRoute>
-                        } />
-                        <Route path="/parental/connections" element={
-                            <ProtectedRoute>
-                                <AppLayout><ParentalConnectionsPage /></AppLayout>
-                            </ProtectedRoute>
-                        } />
-                        <Route path="/parental/courses" element={
-                            <ProtectedRoute>
-                                <AppLayout><ParentalCourseGeneratorPage /></AppLayout>
-                            </ProtectedRoute>
-                        } />
-                        <Route path="/parental-legacy" element={
-                            <ProtectedRoute>
-                                <AppLayout><ParentalPage /></AppLayout>
-                            </ProtectedRoute>
-                        } />
                         <Route path="/settings" element={
                             <ProtectedRoute>
                                 <AppLayout><SettingsPage /></AppLayout>
                             </ProtectedRoute>
                         } />
-                        <Route path="/notifications" element={
-                            <ProtectedRoute>
-                                <AppLayout><NotificationsPage /></AppLayout>
-                            </ProtectedRoute>
-                        } />
 
-                        {/* Gamification Routes (lazy loaded) */}
-                        <Route path="/skill-tree" element={
-                            <ProtectedRoute>
-                                <AppLayout>
-                                    <Suspense fallback={<GamificationFallback />}>
-                                        <SkillTreePage />
-                                    </Suspense>
-                                </AppLayout>
-                            </ProtectedRoute>
-                        } />
-                        <Route path="/analytics" element={
-                            <ProtectedRoute>
-                                <AppLayout>
-                                    <Suspense fallback={<GamificationFallback />}>
-                                        <AnalyticsPage />
-                                    </Suspense>
-                                </AppLayout>
-                            </ProtectedRoute>
-                        } />
+                        {/* [V2+] Advanced Protected Routes — uncomment when ready */}
+                        {/* <Route path="/learning" element={<ProtectedRoute><AppLayout><LearningPage /></AppLayout></ProtectedRoute>} /> */}
+                        {/* <Route path="/knowledge" element={<ProtectedRoute><AppLayout><KnowledgePage /></AppLayout></ProtectedRoute>} /> */}
+                        {/* <Route path="/journey" element={<ProtectedRoute><AppLayout><LearningJourneyPage /></AppLayout></ProtectedRoute>} /> */}
+                        {/* <Route path="/gaps" element={<ProtectedRoute><AppLayout><KnowledgeGapsPage /></AppLayout></ProtectedRoute>} /> */}
+                        {/* <Route path="/quiz" element={<ProtectedRoute><AppLayout><QuizPage /></AppLayout></ProtectedRoute>} /> */}
+                        {/* <Route path="/parental" element={<Navigate to="/parental/status" replace />} /> */}
+                        {/* <Route path="/parental/status" element={<ProtectedRoute><AppLayout><ParentalStatusPage /></AppLayout></ProtectedRoute>} /> */}
+                        {/* <Route path="/parental/connections" element={<ProtectedRoute><AppLayout><ParentalConnectionsPage /></AppLayout></ProtectedRoute>} /> */}
+                        {/* <Route path="/parental/courses" element={<ProtectedRoute><AppLayout><ParentalCourseGeneratorPage /></AppLayout></ProtectedRoute>} /> */}
+                        {/* <Route path="/parental-legacy" element={<ProtectedRoute><AppLayout><ParentalPage /></AppLayout></ProtectedRoute>} /> */}
+                        {/* <Route path="/notifications" element={<ProtectedRoute><AppLayout><NotificationsPage /></AppLayout></ProtectedRoute>} /> */}
+
+                        {/* [V2+] Gamification Routes (lazy loaded) — uncomment when ready */}
+                        {/* <Route path="/skill-tree" element={<ProtectedRoute><AppLayout><Suspense fallback={<GamificationFallback />}><SkillTreePage /></Suspense></AppLayout></ProtectedRoute>} /> */}
+                        {/* <Route path="/analytics" element={<ProtectedRoute><AppLayout><Suspense fallback={<GamificationFallback />}><AnalyticsPage /></Suspense></AppLayout></ProtectedRoute>} /> */}
 
                         {/* Static Information Routes */}
                         <Route path="/manifesto" element={<AppLayout><ManifestoPage /></AppLayout>} />
@@ -381,7 +346,7 @@ export default function App() {
                         <Route path="*" element={<Navigate to="/" replace />} />
                     </Routes>
                 </AuthProvider>
-            </XPProvider>
+            {/* [V2+] Close </XPProvider> when gamification is enabled */}
         </BrowserRouter>
     );
 }
