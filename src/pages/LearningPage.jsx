@@ -1,6 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
+import { Link } from 'react-router-dom';
 import { ai, connectDashboardWS } from '../api';
 import {
+    Code2,
     FileText,
     Upload,
     Plus,
@@ -800,14 +802,28 @@ export default function LearningPage() {
                                                                 >
                                                                     <Play size={12} fill="currentColor" /> {isCompleted ? 'Review' : 'Sync'}
                                                                 </a>
+                                                                <Link
+                                                                    to={`/lab?plan=${selectedPlan}&chapter=${chapter.chapter_number}`}
+                                                                    className="flex-1 md:flex-none flex items-center justify-center gap-2 bg-white/5 border border-white/10 text-white px-6 py-3 rounded-full text-[11px] font-bold uppercase tracking-widest hover:bg-white/10 transition-all"
+                                                                >
+                                                                    <Code2 size={12} /> Open in Lab
+                                                                </Link>
                                                             </>
                                                         ) : (
-                                                            <button
-                                                                onClick={() => handleSearchYouTube(selectedPlan, chapter.chapter_number, searchQuery)}
-                                                                className="flex items-center justify-center gap-3 bg-white text-black px-8 py-3.5 rounded-full text-[11px] font-bold uppercase tracking-widest hover:opacity-90 transition-all shadow-xl"
-                                                            >
-                                                                <Search size={14} /> Connect Node
-                                                            </button>
+                                                            <>
+                                                                <button
+                                                                    onClick={() => handleSearchYouTube(selectedPlan, chapter.chapter_number, searchQuery)}
+                                                                    className="flex items-center justify-center gap-3 bg-white text-black px-8 py-3.5 rounded-full text-[11px] font-bold uppercase tracking-widest hover:opacity-90 transition-all shadow-xl"
+                                                                >
+                                                                    <Search size={14} /> Connect Node
+                                                                </button>
+                                                                <Link
+                                                                    to={`/lab?plan=${selectedPlan}&chapter=${chapter.chapter_number}`}
+                                                                    className="flex-1 md:flex-none flex items-center justify-center gap-2 bg-white/5 border border-white/10 text-white px-6 py-3 rounded-full text-[11px] font-bold uppercase tracking-widest hover:bg-white/10 transition-all"
+                                                                >
+                                                                    <Code2 size={12} /> Open in Lab
+                                                                </Link>
+                                                            </>
                                                         )}
 
                                                         <div className="flex gap-2">

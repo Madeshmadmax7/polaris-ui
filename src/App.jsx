@@ -6,6 +6,9 @@ import { getUser, clearToken, auth as authApi, setToken, setUser as storeUser } 
 // Notifications
 import NotificationBell from './components/NotificationBell';
 
+// Focus Widget
+import FocusWidget from './components/FocusWidget';
+
 // Gamification
 import { XPProvider } from './gamification/context/XPContext';
 import XPBar from './gamification/components/XPBar';
@@ -13,6 +16,7 @@ import XPBar from './gamification/components/XPBar';
 // Lazy-loaded gamification pages
 const SkillTreePage = lazy(() => import('./pages/SkillTree'));
 const AnalyticsPage = lazy(() => import('./pages/Analytics'));
+const LabPage = lazy(() => import('./pages/LabPage'));
 
 // Pages
 import LoginPage from './pages/LoginPage';
@@ -93,16 +97,24 @@ function Navbar() {
     ] : [
         { to: '/dashboard', label: 'Dashboard' },
         { to: '/productivity', label: 'Productivity' },
-        // { to: '/learning', label: 'Learning' },
+        { to: '/learning', label: 'Learning' },
         // { to: '/quiz', label: 'Quizzes' },
         // { to: '/skill-tree', label: 'Skills' },
         // { to: '/analytics', label: 'Analytics' },
-        { to: '/settings', label: 'Settings' },
+        // { to: '/settings', label: 'Settings' },
     ]) : [
         { to: '/', label: 'Home' },
         { to: '/features', label: 'Features' },
         { to: '/docs', label: 'Get Started' },
     ];
+
+    // Add Lab to student nav items (after Learning)
+    if (user && user.role !== 'parent') {
+        const learningIdx = navItems.findIndex(i => i.to === '/learning');
+        if (learningIdx >= 0) {
+            navItems.splice(learningIdx + 1, 0, { to: '/lab', label: 'Lab' });
+        }
+    }
 
     return (
         <nav className="fixed top-0 left-0 right-0 bg-black/80 backdrop-blur-xl text-white z-[100] border-b border-white/5 font-outfit" style={{ overflow: 'hidden' }}>
@@ -290,6 +302,7 @@ export default function App() {
         <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
             <XPProvider>
                 <AuthProvider>
+                    <FocusWidget />
                     <Routes>
                         {/* Public Routes */}
                         <Route path="/" element={<AppLayout><LandingPage /></AppLayout>} />
@@ -366,6 +379,17 @@ export default function App() {
                                 <AppLayout>
                                     <Suspense fallback={<GamificationFallback />}>
                                         <AnalyticsPage />
+                                    </Suspense>
+                                </AppLayout>
+                            </ProtectedRoute>
+                        } />
+
+                        {/* Lab IDE Route (lazy loaded) */}
+                        <Route path="/lab" element={
+                            <ProtectedRoute>
+                                <AppLayout noFooter>
+                                    <Suspense fallback={<GamificationFallback />}>
+                                        <LabPage />
                                     </Suspense>
                                 </AppLayout>
                             </ProtectedRoute>

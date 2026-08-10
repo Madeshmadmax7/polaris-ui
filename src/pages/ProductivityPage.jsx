@@ -15,7 +15,8 @@ import {
     Calendar,
     Activity,
     Clock,
-    MousePointer2
+    MousePointer2,
+    Monitor
 } from 'lucide-react';
 
 function AnalyticCard({ label, value, icon, isTrend }) {
@@ -274,16 +275,31 @@ export default function ProductivityPage() {
                 ) : null}
             </div>
 
-            {/* Top Domain Intelligence */}
+            {/* Domain Intelligence — Web + Desktop */}
             {scores.length > 0 && (() => {
-                const domainMap = {};
+                // Build aggregate maps
+                const webMap = {};
+                const desktopMap = {};
+
                 scores.forEach(s => {
                     (s.top_domains || []).forEach(d => {
-                        if (!domainMap[d.domain]) domainMap[d.domain] = { domain: d.domain, seconds: 0 };
-                        domainMap[d.domain].seconds += d.seconds;
+                        const isDesktop = d.domain && d.domain.startsWith('desktop://');
+                        const map = isDesktop ? desktopMap : webMap;
+                        if (!map[d.domain]) map[d.domain] = { domain: d.domain, seconds: 0, windows: d.windows || [], category: d.category || 'neutral' };
+                        map[d.domain].seconds += d.seconds;
+                        // Merge window titles (keep unique, limit to 5)
+                        if (isDesktop && d.windows) {
+                            const existing = new Set(map[d.domain].windows.map(w => w.title));
+                            d.windows.forEach(w => { if (!existing.has(w.title)) { map[d.domain].windows.push(w); existing.add(w.title); } });
+                        }
+                        if (!map[d.domain].category && d.category) map[d.domain].category = d.category;
                     });
                 });
-                const domainList = Object.values(domainMap).sort((a, b) => b.seconds - a.seconds).slice(0, 10);
+
+                const webList = Object.values(webMap).sort((a, b) => b.seconds - a.seconds).slice(0, 10);
+                const desktopList = Object.values(desktopMap).sort((a, b) => b.seconds - a.seconds).slice(0, 10);
+
+                // Also pick up category per domain from daily summaries
                 const domainCategories = {};
                 scores.forEach(s => {
                     (s.top_domains || []).forEach(d => {
@@ -291,48 +307,99 @@ export default function ProductivityPage() {
                     });
                 });
 
-                return (
-                    <div className="bg-black border border-white/5 rounded-[48px] overflow-hidden mb-16 shadow-3xl">
-                        <div className="p-10 border-b border-white/5 bg-white/5 flex flex-col md:flex-row justify-between items-center gap-10">
-                            <div>
-                                <h3 className="text-2xl font-semibold tracking-tight text-white mb-2 flex items-center gap-4">
-                                    <Globe size={24} className="text-zinc-500" /> Interface Dominance
-                                </h3>
-                                <p className="text-zinc-600 text-[10px] font-bold uppercase tracking-[0.4em]">Aggregated influence mapping by domain</p>
-                            </div>
-                            <div className="px-6 py-2.5 bg-white/5 border border-white/5 rounded-full text-[9px] font-bold uppercase tracking-[0.2em] text-zinc-400">
-                                Top 10 Identified Nodes
-                            </div>
-                        </div>
-                        <div className="p-12 grid grid-cols-1 md:grid-cols-2 gap-x-16 gap-y-12">
-                            {domainList.map((d, i) => {
-                                const mins = d.seconds / 60;
-                                const maxMins = domainList[0].seconds / 60;
-                                const pct = (mins / Math.max(maxMins, 1)) * 100;
-                                const cat = domainCategories[d.domain] || 'neutral';
-                                return (
-                                    <div key={i} className="group/item">
-                                        <div className="flex justify-between items-end mb-4 px-1">
-                                            <div className="text-[14px] font-medium text-white tracking-tight truncate max-w-[200px]" title={d.domain}>
-                                                {d.domain}
-                                            </div>
-                                            <div className="text-[9px] font-bold tabular-nums text-zinc-600 uppercase tracking-widest whitespace-nowrap ml-4">
-                                                {Math.round(mins)}M / <span className={cat === 'productive' ? 'text-white' : 'text-zinc-700'}>{cat}</span>
-                                            </div>
-                                        </div>
-                                        <div className="h-1 bg-white/5 rounded-full overflow-hidden">
-                                            <div 
-                                                className={`h-full transition-all duration-1000 ${cat === 'productive' ? 'bg-white' : cat === 'neutral' ? 'bg-zinc-700' : 'bg-zinc-800'}`} 
-                                                style={{ width: `${Math.max(pct, 2)}%` }} 
-                                            />
-                                        </div>
+                const DomainRow = ({ d, maxMins, isDesktop }) => {
+                    const mins = d.seconds / 60;
+                    const pct = (mins / Math.max(maxMins, 1)) * 100;
+                    const cat = domainCategories[d.domain] || d.category || 'neutral';
+                    const label = isDesktop
+                        ? d.domain.replace('desktop://', '').replace(/\.exe$/i, '')
+                        : d.domain;
+                    const subtitle = isDesktop && d.windows && d.windows.length > 0
+                        ? d.windows[0].title
+                        : null;
+
+                    return (
+                        <div className="group/item">
+                            <div className="flex justify-between items-end mb-2 px-1">
+                                <div>
+                                    <div className="text-[14px] font-medium text-white tracking-tight truncate max-w-[220px]" title={label}>
+                                        {label}
                                     </div>
-                                );
-                            })}
+                                    {subtitle && (
+                                        <div className="text-[10px] text-zinc-600 truncate max-w-[220px] mt-0.5" title={subtitle}>
+                                            {subtitle}
+                                        </div>
+                                    )}
+                                </div>
+                                <div className="text-[9px] font-bold tabular-nums text-zinc-600 uppercase tracking-widest whitespace-nowrap ml-4">
+                                    {Math.round(mins)}M / <span className={cat === 'productive' ? 'text-white' : 'text-zinc-700'}>{cat}</span>
+                                </div>
+                            </div>
+                            <div className="h-1 bg-white/5 rounded-full overflow-hidden">
+                                <div
+                                    className={`h-full transition-all duration-1000 ${cat === 'productive' ? 'bg-white' : cat === 'neutral' ? 'bg-zinc-700' : 'bg-zinc-800'}`}
+                                    style={{ width: `${Math.max(pct, 2)}%` }}
+                                />
+                            </div>
                         </div>
+                    );
+                };
+
+                return (
+                    <div className="space-y-10 mb-16">
+                        {/* Web Activity */}
+                        {webList.length > 0 && (
+                            <div className="bg-black border border-white/5 rounded-[48px] overflow-hidden shadow-3xl">
+                                <div className="p-10 border-b border-white/5 bg-white/5 flex flex-col md:flex-row justify-between items-center gap-10">
+                                    <div>
+                                        <h3 className="text-2xl font-semibold tracking-tight text-white mb-2 flex items-center gap-4">
+                                            <Globe size={24} className="text-zinc-500" /> Web Interface Dominance
+                                        </h3>
+                                        <p className="text-zinc-600 text-[10px] font-bold uppercase tracking-[0.4em]">Aggregated influence mapping by domain</p>
+                                    </div>
+                                    <div className="px-6 py-2.5 bg-white/5 border border-white/5 rounded-full text-[9px] font-bold uppercase tracking-[0.2em] text-zinc-400">
+                                        Top {webList.length} Web Nodes
+                                    </div>
+                                </div>
+                                <div className="p-12 grid grid-cols-1 md:grid-cols-2 gap-x-16 gap-y-12">
+                                    {webList.map((d, i) => (
+                                        <DomainRow key={i} d={d} maxMins={webList[0].seconds / 60} isDesktop={false} />
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Desktop Activity */}
+                        {desktopList.length > 0 && (
+                            <div className="bg-black border border-white/5 rounded-[48px] overflow-hidden shadow-3xl">
+                                <div className="p-10 border-b border-white/5 bg-white/5 flex flex-col md:flex-row justify-between items-center gap-10">
+                                    <div>
+                                        <h3 className="text-2xl font-semibold tracking-tight text-white mb-2 flex items-center gap-4">
+                                            <Monitor size={24} className="text-zinc-500" /> Desktop Application Activity
+                                        </h3>
+                                        <p className="text-zinc-600 text-[10px] font-bold uppercase tracking-[0.4em]">Native app usage tracked by the desktop agent</p>
+                                    </div>
+                                    <div className="px-6 py-2.5 bg-white/5 border border-white/5 rounded-full text-[9px] font-bold uppercase tracking-[0.2em] text-zinc-400">
+                                        Top {desktopList.length} Desktop Nodes
+                                    </div>
+                                </div>
+                                <div className="p-12 grid grid-cols-1 md:grid-cols-2 gap-x-16 gap-y-12">
+                                    {desktopList.map((d, i) => (
+                                        <DomainRow key={i} d={d} maxMins={desktopList[0].seconds / 60} isDesktop={true} />
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
+                        {webList.length === 0 && desktopList.length === 0 && (
+                            <div className="text-center text-zinc-700 font-bold uppercase tracking-[0.5em] text-[10px] py-16">
+                                No Activity Data
+                            </div>
+                        )}
                     </div>
                 );
             })()}
+
 
             {/* Detailed Log Table */}
             {scores.length > 0 && (

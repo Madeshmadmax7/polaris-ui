@@ -279,3 +279,10 @@ export const notifications = {
     delete: (notificationId) => request(`/notifications/${notificationId}`, { method: 'DELETE' }),
     clearAll: () => request('/notifications/clear-all', { method: 'POST' }),
 };
+
+// ── Gamification ────────────────────────────────────────
+export const gamification = {
+    getSkills: () => request('/gamification/skills'),
+    getBadges: () => request('/gamification/badges'),
+    getQuests: () => request('/gamification/quests'),
+};
