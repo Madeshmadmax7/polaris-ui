@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { ai, connectDashboardWS } from '../api';
+import { ai, lab, connectDashboardWS } from '../api';
 import {
     Code2,
     FileText,
@@ -25,7 +25,8 @@ import {
     MessageSquare,
     Lightbulb,
     Target,
-    ChevronRight
+    ChevronRight,
+    Terminal
 } from 'lucide-react';
 
 export default function LearningPage() {
@@ -36,6 +37,7 @@ export default function LearningPage() {
     const [planForm, setPlanForm] = useState({ goal: '', duration_days: 14, document_id: '' });
     const [selectedPlan, setSelectedPlan] = useState(null);
     const [planProgress, setPlanProgress] = useState(null);
+    const [planTasks, setPlanTasks] = useState([]); // Coding tasks for the active study plan
     const [loading, setLoading] = useState(true);
     const [showQuiz, setShowQuiz] = useState(false);
     const [quizAnswers, setQuizAnswers] = useState({});
@@ -144,8 +146,12 @@ export default function LearningPage() {
 
     const loadPlanProgress = async (planId) => {
         try {
-            const progress = await ai.getStudyPlanProgress(planId);
+            const [progress, tasks] = await Promise.all([
+                ai.getStudyPlanProgress(planId),
+                lab.getPlanTasks(planId).catch(() => [])
+            ]);
             setPlanProgress(progress);
+            setPlanTasks(tasks || []);
         } catch (err) {
             console.error('Failed to load progress:', err);
         }
@@ -732,6 +738,9 @@ export default function LearningPage() {
                                         const hasVideo = progress?.youtube_url && videoDuration > 0;
                                         const searchQuery = chapter.youtube_search_query || chapter.title.toLowerCase().replace(/ /g, '+');
 
+                                        const chapterTasks = planTasks.filter(t => t.chapter_number === chapter.chapter_number);
+                                        const solvedTasksCount = chapterTasks.filter(t => t.solved).length;
+
                                         return (
                                             <div
                                                 key={chapter.chapter_number}
@@ -753,18 +762,36 @@ export default function LearningPage() {
                                                             {isCompleted && <CheckCircle2 size={18} className="text-white" />}
                                                         </div>
 
-                                                        <p className="text-zinc-500 text-[13px] font-light mb-8 leading-relaxed">
+                                                        <p className="text-zinc-500 text-[13px] font-light mb-6 leading-relaxed">
                                                             {chapter.description}
                                                         </p>
 
                                                         {/* Topics Tags */}
                                                         {chapter.key_topics && chapter.key_topics.length > 0 && (
-                                                            <div className="flex flex-wrap gap-2 mb-8">
+                                                            <div className="flex flex-wrap gap-2 mb-4">
                                                                 {chapter.key_topics.map((topic, idx) => (
                                                                     <span key={idx} className="px-3 py-1 bg-white/5 text-zinc-500 text-[9px] font-bold uppercase tracking-widest rounded-full border border-white/5">
                                                                         {topic}
                                                                     </span>
                                                                 ))}
+                                                            </div>
+                                                        )}
+
+                                                        {/* Coding Challenges Indicator */}
+                                                        {chapterTasks.length > 0 && (
+                                                            <div className="flex flex-wrap items-center gap-2 mb-6">
+                                                                <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-violet-500/10 border border-violet-500/20 text-violet-400 text-[10px] font-bold uppercase tracking-wider rounded-full shadow-[0_0_12px_rgba(167,139,250,0.15)]">
+                                                                    <Terminal size={11} /> {chapterTasks.length} {chapterTasks.length === 1 ? 'Coding Task' : 'Coding Tasks'}
+                                                                </span>
+                                                                {solvedTasksCount > 0 ? (
+                                                                    <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[10px] font-bold uppercase tracking-wider rounded-full">
+                                                                        <CheckCircle2 size={11} /> {solvedTasksCount}/{chapterTasks.length} Solved
+                                                                    </span>
+                                                                ) : (
+                                                                    <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-white/5 border border-white/5 text-zinc-400 text-[10px] font-semibold uppercase tracking-wider rounded-full">
+                                                                        Ready in Sandbox
+                                                                    </span>
+                                                                )}
                                                             </div>
                                                         )}
 
@@ -804,9 +831,14 @@ export default function LearningPage() {
                                                                 </a>
                                                                 <Link
                                                                     to={`/lab?plan=${selectedPlan}&chapter=${chapter.chapter_number}`}
-                                                                    className="flex-1 md:flex-none flex items-center justify-center gap-2 bg-white/5 border border-white/10 text-white px-6 py-3 rounded-full text-[11px] font-bold uppercase tracking-widest hover:bg-white/10 transition-all"
+                                                                    className={`flex-1 md:flex-none flex items-center justify-center gap-2 px-6 py-3 rounded-full text-[11px] font-bold uppercase tracking-widest transition-all ${
+                                                                        chapterTasks.length > 0
+                                                                            ? 'bg-violet-500/10 border border-violet-500/30 text-violet-300 hover:bg-violet-500/20 hover:border-violet-500/50 shadow-lg shadow-violet-500/10'
+                                                                            : 'bg-white/5 border border-white/10 text-white hover:bg-white/10'
+                                                                    }`}
                                                                 >
-                                                                    <Code2 size={12} /> Open in Lab
+                                                                    <Code2 size={12} className={chapterTasks.length > 0 ? 'text-violet-400' : 'text-zinc-400'} />
+                                                                    {chapterTasks.length > 0 ? `Code in Lab (${chapterTasks.length})` : 'Open in Lab'}
                                                                 </Link>
                                                             </>
                                                         ) : (
@@ -819,9 +851,14 @@ export default function LearningPage() {
                                                                 </button>
                                                                 <Link
                                                                     to={`/lab?plan=${selectedPlan}&chapter=${chapter.chapter_number}`}
-                                                                    className="flex-1 md:flex-none flex items-center justify-center gap-2 bg-white/5 border border-white/10 text-white px-6 py-3 rounded-full text-[11px] font-bold uppercase tracking-widest hover:bg-white/10 transition-all"
+                                                                    className={`flex-1 md:flex-none flex items-center justify-center gap-2 px-6 py-3 rounded-full text-[11px] font-bold uppercase tracking-widest transition-all ${
+                                                                        chapterTasks.length > 0
+                                                                            ? 'bg-violet-500/10 border border-violet-500/30 text-violet-300 hover:bg-violet-500/20 hover:border-violet-500/50 shadow-lg shadow-violet-500/10'
+                                                                            : 'bg-white/5 border border-white/10 text-white hover:bg-white/10'
+                                                                    }`}
                                                                 >
-                                                                    <Code2 size={12} /> Open in Lab
+                                                                    <Code2 size={12} className={chapterTasks.length > 0 ? 'text-violet-400' : 'text-zinc-400'} />
+                                                                    {chapterTasks.length > 0 ? `Code in Lab (${chapterTasks.length})` : 'Open in Lab'}
                                                                 </Link>
                                                             </>
                                                         )}

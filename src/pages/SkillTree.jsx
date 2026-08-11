@@ -1,11 +1,12 @@
 import { useState, useEffect, useMemo } from 'react';
-import { ai, gamification } from '../api';
+import { ai } from '../api';
 import { useXP } from '../gamification/hooks/useXP';
+import skillTreeConfig from '../gamification/data/skillTreeConfig';
 import {
     Code, Calculator, Cpu, Braces, Terminal, Coffee,
     Atom, Server, FileType, Leaf, Globe, Beaker, Network,
     Layers, Database, GitBranch, Brain, GitMerge, Cloud, Blocks,
-    Lock, CheckCircle2, Loader2, Zap, ChevronDown, Trophy, Target
+    Lock, CheckCircle2, Loader2, Zap, ChevronDown,
 } from 'lucide-react';
 
 const ICON_MAP = {
@@ -142,9 +143,6 @@ function getSkillState(skill, progressMap) {
 
 export default function SkillTree() {
     const [studyPlans, setStudyPlans] = useState([]);
-    const [skillTreeConfig, setSkillTreeConfig] = useState([]);
-    const [badges, setBadges] = useState([]);
-    const [quests, setQuests] = useState([]);
     const [loading, setLoading] = useState(true);
     const [selectedSkill, setSelectedSkill] = useState(null);
     const { totalXP = 0, level = 0 } = useXP() || {};
@@ -152,13 +150,7 @@ export default function SkillTree() {
     useEffect(() => {
         async function load() {
             try {
-                const [plans, skills, bgs, qts] = await Promise.all([
-                    ai.getStudyPlans().catch(() => []),
-                    gamification.getSkills().catch(() => []),
-                    gamification.getBadges().catch(() => []),
-                    gamification.getQuests().catch(() => []),
-                ]);
-                
+                const plans = await ai.getStudyPlans().catch(() => []);
                 const enriched = await Promise.all(
                     plans.map(async (plan) => {
                         try { return await ai.getStudyPlan(plan.id); }
@@ -166,9 +158,6 @@ export default function SkillTree() {
                     })
                 );
                 setStudyPlans(enriched);
-                setSkillTreeConfig(skills);
-                setBadges(bgs);
-                setQuests(qts);
             } catch {
                 setStudyPlans([]);
             } finally {
@@ -209,10 +198,10 @@ export default function SkillTree() {
         <div style={styles.page}>
             <div style={styles.header}>
                 <div>
-                    <h1 style={styles.title}>Skill Tree & Gamification</h1>
+                    <h1 style={styles.title}>Skill Tree</h1>
                     <p style={styles.subtitle}>
-                        Complete daily quests and study plans to earn XP and unlock badges.
-                        Master skills by completing all subtopics.
+                        Create study plans in Learning to unlock skills.
+                        Each skill has subtopics — complete them all to master it.
                     </p>
                 </div>
                 <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
@@ -225,41 +214,8 @@ export default function SkillTree() {
                         <span style={{ color: 'rgba(255,255,255,0.3)', fontSize: '9px' }}>Active</span>
                     </div>
                     <div style={styles.statBadge}>
-                        <span style={{ color: '#f59e0b', fontWeight: 800 }}>Lvl {level}</span>
-                        <span style={{ color: 'rgba(255,255,255,0.3)', fontSize: '9px' }}>{totalXP} XP</span>
-                    </div>
-                </div>
-            </div>
-
-            {/* Gamification Panel */}
-            <div style={styles.gamificationPanel}>
-                <div style={styles.gamificationSection}>
-                    <div style={styles.gamificationTitle}><Trophy size={16} color="#f59e0b" /> Trophy Case</div>
-                    <div style={styles.badgeRow}>
-                        {badges.map(b => (
-                            <div key={b.id} style={{...styles.badgeItem, opacity: b.unlocked ? 1 : 0.3}}>
-                                <div style={{...styles.badgeIcon, color: b.unlocked ? b.color : '#fff', borderColor: b.unlocked ? b.color : 'rgba(255,255,255,0.1)'}}>
-                                    {b.icon === 'Zap' ? <Zap size={20}/> : b.icon === 'Coffee' ? <Coffee size={20}/> : b.icon === 'Globe' ? <Globe size={20}/> : <Trophy size={20}/>}
-                                </div>
-                                <div style={styles.badgeName}>{b.name}</div>
-                            </div>
-                        ))}
-                    </div>
-                </div>
-                <div style={styles.gamificationSection}>
-                    <div style={styles.gamificationTitle}><Target size={16} color="#3b82f6" /> Daily Quests</div>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                        {quests.map(q => (
-                            <div key={q.id} style={styles.questItem}>
-                                <div style={{flex: 1}}>
-                                    <div style={{fontSize: '12px', fontWeight: 600, color: q.is_completed ? '#34d399' : '#fff'}}>{q.title}</div>
-                                    <div style={styles.questProgressOuter}>
-                                        <div style={{...styles.questProgressInner, width: `${Math.min(100, ((q.current_value || 0) / q.target_value) * 100)}%`, background: q.is_completed ? '#34d399' : '#3b82f6'}} />
-                                    </div>
-                                </div>
-                                <div style={{fontSize: '10px', fontWeight: 800, color: '#f59e0b'}}>+{q.xp_reward} XP</div>
-                            </div>
-                        ))}
+                        <span style={{ color: 'rgba(255,255,255,0.5)', fontWeight: 800 }}>{totalSkills}</span>
+                        <span style={{ color: 'rgba(255,255,255,0.3)', fontSize: '9px' }}>Total</span>
                     </div>
                 </div>
             </div>
@@ -537,14 +493,4 @@ const styles = {
     progressBarOuter: { height: '4px', background: 'rgba(255,255,255,0.06)', borderRadius: '4px', overflow: 'hidden', marginBottom: '6px' },
     progressBarInner: { height: '100%', borderRadius: '4px', transition: 'width 0.8s ease' },
     statusBar: { marginTop: '20px', padding: '14px', borderRadius: '14px', border: '1px solid', textAlign: 'center', fontSize: '10px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.2em' },
-    gamificationPanel: { display: 'flex', gap: '24px', marginBottom: '40px', flexWrap: 'wrap' },
-    gamificationSection: { flex: 1, minWidth: '300px', background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: '20px', padding: '20px' },
-    gamificationTitle: { display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '16px' },
-    badgeRow: { display: 'flex', gap: '16px', flexWrap: 'wrap' },
-    badgeItem: { display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px', width: '80px', textAlign: 'center' },
-    badgeIcon: { width: '48px', height: '48px', borderRadius: '14px', border: '2px solid', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(255,255,255,0.02)' },
-    badgeName: { fontSize: '10px', fontWeight: 600, color: 'rgba(255,255,255,0.6)', lineHeight: 1.2 },
-    questItem: { display: 'flex', alignItems: 'center', gap: '12px', padding: '10px 14px', background: 'rgba(255,255,255,0.02)', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.04)' },
-    questProgressOuter: { height: '4px', background: 'rgba(255,255,255,0.06)', borderRadius: '4px', overflow: 'hidden', marginTop: '6px' },
-    questProgressInner: { height: '100%', borderRadius: '4px', transition: 'width 0.8s ease' },
 };

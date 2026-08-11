@@ -286,3 +286,14 @@ export const gamification = {
     getBadges: () => request('/gamification/badges'),
     getQuests: () => request('/gamification/quests'),
 };
+
+// ── Lab IDE & Code Verification ────────────────────────
+export const lab = {
+    execute: (code, language) => request('/lab/execute', { method: 'POST', body: JSON.stringify({ code, language }) }),
+    getChapterTasks: (planId, chapterNum) => request(`/lab/tasks/${planId}/${chapterNum}`),
+    getPlanTasks: (planId) => request(`/lab/plan-tasks/${planId}`),
+    submit: (taskId, code, language) => request('/lab/submit', { method: 'POST', body: JSON.stringify({ task_id: taskId, code, language }) }),
+    getSubmissions: (taskId) => request(`/lab/submissions/${taskId}`),
+    getLanguages: () => request('/lab/languages'),
+};
+
