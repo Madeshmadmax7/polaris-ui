@@ -98,9 +98,9 @@ function Navbar() {
         { to: '/dashboard', label: 'Dashboard' },
         { to: '/productivity', label: 'Productivity' },
         { to: '/learning', label: 'Learning' },
-        { to: '/quiz', label: 'Quizzes' },
+        // { to: '/quiz', label: 'Quizzes' },
         { to: '/skill-tree', label: 'Skills' },
-        { to: '/analytics', label: 'Analytics' },
+        // { to: '/analytics', label: 'Analytics' },
         { to: '/settings', label: 'Settings' },
     ]) : [
         { to: '/', label: 'Home' },
@@ -109,12 +109,12 @@ function Navbar() {
     ];
 
     // Add Lab to student nav items (after Learning)
-    if (user && user.role !== 'parent') {
-        const learningIdx = navItems.findIndex(i => i.to === '/learning');
-        if (learningIdx >= 0) {
-            navItems.splice(learningIdx + 1, 0, { to: '/lab', label: 'Lab' });
-        }
-    }
+    // if (user && user.role !== 'parent') {
+    //     const learningIdx = navItems.findIndex(i => i.to === '/learning');
+    //     if (learningIdx >= 0) {
+    //         navItems.splice(learningIdx + 1, 0, { to: '/lab', label: 'Lab' });
+    //     }
+    // }
 
     return (
         <nav className="fixed top-0 left-0 right-0 bg-black/80 backdrop-blur-xl text-white z-[100] border-b border-white/5 font-outfit" style={{ overflow: 'hidden' }}>

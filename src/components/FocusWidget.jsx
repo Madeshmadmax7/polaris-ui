@@ -36,12 +36,9 @@ export default function FocusWidget() {
     const [blockingActive, setBlockingActive] = useState(false);
     const intervalRef = useRef(null);
 
-    // Don't render for unauthenticated users or parents
-    if (!user || user.role === 'parent') return null;
-
     // ── API: Start focus session ────────────────────────────
     const notifyFocusStart = useCallback(async (durationMins) => {
-        const token = getToken();
+        const token = localStorage.getItem('polaris_token');
         if (!token) return;
         try {
             const res = await fetch(`${API_BASE}/productivity/focus-session/start`, {
@@ -134,6 +131,9 @@ export default function FocusWidget() {
         setTimeRemaining(PRESETS[selectedPreset].seconds);
         setTotalTime(PRESETS[selectedPreset].seconds);
     };
+
+    // Don't render for unauthenticated users or parents (called AFTER all hooks)
+    if (!user || user.role === 'parent') return null;
 
     // ── Computed ─────────────────────────────────────────────
     const minutes = Math.floor(timeRemaining / 60);
