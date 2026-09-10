@@ -6,8 +6,7 @@ import { getUser, clearToken, auth as authApi, setToken, setUser as storeUser } 
 // Notifications
 import NotificationBell from './components/NotificationBell';
 
-// Focus Widget
-import FocusWidget from './components/FocusWidget';
+// Focus Widget removed from web app — lives in the browser extension now
 
 // Gamification
 import { XPProvider } from './gamification/context/XPContext';
@@ -108,20 +107,12 @@ function Navbar() {
         { to: '/docs', label: 'Get Started' },
     ];
 
-    // Add Lab to student nav items (after Learning)
-    // if (user && user.role !== 'parent') {
-    //     const learningIdx = navItems.findIndex(i => i.to === '/learning');
-    //     if (learningIdx >= 0) {
-    //         navItems.splice(learningIdx + 1, 0, { to: '/lab', label: 'Lab' });
-    //     }
-    // }
+    // Lab is accessible only through the Learning page chapter links (no nav entry)
 
     return (
         <nav className="fixed top-0 left-0 right-0 bg-black/80 backdrop-blur-xl text-white z-[100] border-b border-white/5 font-outfit" style={{ overflow: 'hidden' }}>
             <div style={{ width: '100%', maxWidth: '100vw', padding: '0 16px', boxSizing: 'border-box' }}>
                 <div style={{ display: 'flex', alignItems: 'center', height: '56px', gap: '0' }}>
-
-                    {/* LOGO — far left */}
                     <div style={{ flexShrink: 0, marginRight: '16px' }}>
                         <Link to="/" style={{ textDecoration: 'none' }}>
                             <span className="text-[15px] font-bold tracking-[0.4em] text-white uppercase" style={{ whiteSpace: 'nowrap' }}>
@@ -130,7 +121,6 @@ function Navbar() {
                         </Link>
                     </div>
 
-                    {/* NAV LINKS — center, scrollable if needed */}
                     <div className="hidden md:flex" style={{ flex: 1, justifyContent: 'center', alignItems: 'center', gap: '2px', overflow: 'hidden', minWidth: 0 }}>
                         {navItems.map((item) => (
                             <NavLink
@@ -146,7 +136,6 @@ function Navbar() {
                         ))}
                     </div>
 
-                    {/* RIGHT — Notifications + XP bar + user + logout */}
                     {user ? (
                         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexShrink: 0, marginLeft: '12px' }}>
                             <NotificationBell />
@@ -166,7 +155,8 @@ function Navbar() {
                                 <LogOut size={14} />
                             </button>
                         </div>
-                    ) : (
+                    )
+                     : (
                         <div className="hidden md:flex" style={{ alignItems: 'center', gap: '12px', flexShrink: 0, marginLeft: '12px' }}>
                             <Link to="/login" className="text-[11px] font-medium uppercase tracking-[0.15em] text-zinc-500 hover:text-white transition-colors" style={{ textDecoration: 'none', whiteSpace: 'nowrap' }}>Sign In</Link>
                             <Link to="/register" className="bg-white text-black text-[11px] font-bold uppercase tracking-[0.15em] hover:opacity-90 transition-all" style={{ padding: '6px 16px', borderRadius: '20px', textDecoration: 'none', whiteSpace: 'nowrap' }}>
@@ -302,7 +292,7 @@ export default function App() {
         <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
             <XPProvider>
                 <AuthProvider>
-                    <FocusWidget />
+
                     <Routes>
                         {/* Public Routes */}
                         <Route path="/" element={<AppLayout><LandingPage /></AppLayout>} />
@@ -384,7 +374,7 @@ export default function App() {
                             </ProtectedRoute>
                         } />
 
-                        {/* Lab IDE Route (lazy loaded) */}
+                        {/* Lab IDE Route — only accessible with ?plan=...&chapter=... from Learning page */}
                         <Route path="/lab" element={
                             <ProtectedRoute>
                                 <AppLayout noFooter>

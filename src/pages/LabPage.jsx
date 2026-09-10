@@ -1,97 +1,67 @@
 /**
- * Polaris Lab — Interactive Code IDE & Practice Sandbox
+ * Polaris Lab — LeetCode-Style Interactive Code IDE
  * 
- * A full split-pane IDE with:
- * - Collapsible & resizable YouTube video player
- * - Collapsible & resizable Problem Statement / Tasks panel (with 14px high-contrast readable typography)
- * - Monaco code editor with multi-language support
- * - Resizable Terminal output & automated test verification results
- * - Multi-file tab system
- * - Quick workspace layout switcher (Study, Problem & Code, Zen Mode)
+ * Accessible only from Learning page via ?plan=...&chapter=... params.
+ * If accessed without params, redirects to /learning.
+ *
+ * Layout (3-panel):
+ *   LEFT top:    Problem statement / description
+ *   LEFT bottom: YouTube video (from learning chapter)
+ *   RIGHT:       Code editor (top) + Output panel (bottom)
+ *
+ * Multi-language: Python, C++, Java, JavaScript, HTML/CSS
  */
 
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { useSearchParams, Link } from 'react-router-dom';
+import { useSearchParams, Link, Navigate } from 'react-router-dom';
 import {
     Code2, Play, BookOpen, Beaker, ChevronDown, ChevronUp,
-    PanelLeftClose, PanelLeftOpen, RotateCcw,
-    Sparkles, Loader2, CheckCircle2, XCircle,
-    ListChecks, ChevronRight, Send, Eye, Lightbulb,
-    Layout, Maximize2, Minimize2, Terminal as TerminalIcon,
-    FileCode, HelpCircle, Columns, Layers, Cpu, ArrowLeft
+    RotateCcw, Loader2, CheckCircle2, XCircle,
+    ChevronRight, Send, Lightbulb,
+    ArrowLeft, Clock, History, FileText,
+    Youtube
 } from 'lucide-react';
 import { ai, lab } from '../api';
 import CodeEditor from '../components/lab/CodeEditor';
 import OutputPanel from '../components/lab/OutputPanel';
 import VideoPlayer from '../components/lab/VideoPlayer';
-import FileExplorer from '../components/lab/FileExplorer';
 
-function executeJavaScriptInBrowser(code) {
-    const logs = [];
-    const errors = [];
-    const startTime = performance.now();
-
-    // Create sandboxed console
-    const sandboxConsole = {
-        log: (...args) => logs.push(args.map(a => typeof a === 'object' ? JSON.stringify(a, null, 2) : String(a)).join(' ')),
-        error: (...args) => errors.push(args.map(a => typeof a === 'object' ? JSON.stringify(a, null, 2) : String(a)).join(' ')),
-        warn: (...args) => logs.push('[warn] ' + args.map(a => String(a)).join(' ')),
-        info: (...args) => logs.push('[info] ' + args.map(a => String(a)).join(' ')),
-        table: (data) => logs.push(JSON.stringify(data, null, 2)),
-        clear: () => { logs.length = 0; },
-    };
-
-    try {
-        // eslint-disable-next-line no-new-func
-        const fn = new Function('console', code);
-        fn(sandboxConsole);
-    } catch (e) {
-        errors.push(e.toString());
-    }
-
-    const elapsed = performance.now() - startTime;
-
-    return {
-        stdout: logs.join('\n'),
-        stderr: errors.join('\n'),
-        exit_code: errors.length > 0 ? 1 : 0,
-        execution_time_ms: Math.round(elapsed * 100) / 100,
-        timed_out: false,
-        language: 'javascript',
-    };
-}
-
-// ── Default code templates ──────────────────────────────────
+// ── Default code templates per language ─────────────────────
 const DEFAULT_CODE = {
-    python: `# Polaris Lab — Python Sandbox
-# Write your code here and press Run (or Ctrl+Enter)
+    python: `# Write your solution here
+def solution():
+    pass
 
-def greet(name):
-    return f"Hello, {name}! Welcome to Polaris Lab."
-
-print(greet("Developer"))
-print()
-
-# Try some data structures
-skills = ["Python", "JavaScript", "React", "FastAPI"]
-for i, skill in enumerate(skills, 1):
-    print(f"  {i}. {skill}")
+# Read input and call your function
 `,
-    javascript: `// Polaris Lab — JavaScript Sandbox
-// Write your code here and press Run (or Ctrl+Enter)
+    cpp: `#include <iostream>
+#include <vector>
+#include <string>
+#include <algorithm>
+using namespace std;
 
-function greet(name) {
-  return \`Hello, \${name}! Welcome to Polaris Lab.\`;
+int main() {
+    // Write your solution here
+    
+    return 0;
+}
+`,
+    java: `import java.util.*;
+
+public class Main {
+    public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);
+        // Write your solution here
+        
+    }
+}
+`,
+    javascript: `// Write your solution here
+function solution() {
+    
 }
 
-console.log(greet("Developer"));
-console.log();
-
-// Try some data structures
-const skills = ["Python", "JavaScript", "React", "FastAPI"];
-skills.forEach((skill, i) => {
-  console.log(\`  \${i + 1}. \${skill}\`);
-});
+// Read input and call your function
 `,
     html: `<!DOCTYPE html>
 <html>
@@ -110,10 +80,7 @@ skills.forEach((skill, i) => {
       border-radius: 24px; padding: 40px;
       text-align: center; max-width: 400px;
     }
-    h1 {
-      font-size: 1.5rem; letter-spacing: 0.3em;
-      text-transform: uppercase; margin-bottom: 12px;
-    }
+    h1 { font-size: 1.5rem; letter-spacing: 0.3em; text-transform: uppercase; margin-bottom: 12px; }
     p { color: #71717a; font-size: 0.85rem; line-height: 1.6; }
   </style>
 </head>
@@ -127,7 +94,45 @@ skills.forEach((skill, i) => {
 `,
 };
 
-let fileCounter = 1;
+function executeJavaScriptInBrowser(code) {
+    const logs = [];
+    const errors = [];
+    const startTime = performance.now();
+
+    const sandboxConsole = {
+        log: (...args) => logs.push(args.map(a => typeof a === 'object' ? JSON.stringify(a, null, 2) : String(a)).join(' ')),
+        error: (...args) => errors.push(args.map(a => typeof a === 'object' ? JSON.stringify(a, null, 2) : String(a)).join(' ')),
+        warn: (...args) => logs.push('[warn] ' + args.map(a => String(a)).join(' ')),
+        info: (...args) => logs.push('[info] ' + args.map(a => String(a)).join(' ')),
+        table: (data) => logs.push(JSON.stringify(data, null, 2)),
+        clear: () => { logs.length = 0; },
+    };
+
+    try {
+        // eslint-disable-next-line no-new-func
+        const fn = new Function('console', code);
+        fn(sandboxConsole);
+    } catch (e) {
+        errors.push(e.toString());
+    }
+
+    const elapsed = performance.now() - startTime;
+    return {
+        stdout: logs.join('\n'),
+        stderr: errors.join('\n'),
+        exit_code: errors.length > 0 ? 1 : 0,
+        execution_time_ms: Math.round(elapsed * 100) / 100,
+        timed_out: false,
+        language: 'javascript',
+    };
+}
+
+// ── Difficulty badge colors ─────────────────────────────────
+const DIFF_COLORS = {
+    easy: { text: '#4ade80', bg: 'rgba(34,197,94,0.1)', border: 'rgba(34,197,94,0.2)' },
+    medium: { text: '#fcd34d', bg: 'rgba(251,191,36,0.1)', border: 'rgba(251,191,36,0.2)' },
+    hard: { text: '#f87171', bg: 'rgba(239,68,68,0.1)', border: 'rgba(239,68,68,0.2)' },
+};
 
 // ── Main Lab Page ───────────────────────────────────────────
 export default function LabPage() {
@@ -135,34 +140,27 @@ export default function LabPage() {
     const planId = searchParams.get('plan');
     const chapterNum = searchParams.get('chapter');
 
-    // File system state
-    const [files, setFiles] = useState([
-        { id: 'file-0', name: 'main.py', language: 'python', code: DEFAULT_CODE.python },
-    ]);
-    const [activeFileId, setActiveFileId] = useState('file-0');
+    // ── REDIRECT: if no plan/chapter, go to Learning page ───
+    if (!planId || !chapterNum) {
+        return <Navigate to="/learning" replace />;
+    }
+
+    return <LabContent planId={planId} chapterNum={chapterNum} searchParams={searchParams} />;
+}
+
+// Separated so the Navigate doesn't interfere with hooks
+function LabContent({ planId, chapterNum, searchParams }) {
+    // Code state
+    const [code, setCode] = useState(DEFAULT_CODE.python);
+    const [language, setLanguage] = useState('python');
 
     // Execution state
     const [output, setOutput] = useState(null);
     const [isRunning, setIsRunning] = useState(false);
 
-    // Layout panels state
-    const [videoPanelOpen, setVideoPanelOpen] = useState(true);
-    const [tasksPanelOpen, setTasksPanelOpen] = useState(true);
-    const [outputPanelOpen, setOutputPanelOpen] = useState(true);
-    const [videoMinimized, setVideoMinimized] = useState(false);
-
-    // Resizable dimensions
-    const [taskPanelWidth, setTaskPanelWidth] = useState(380); // 380px for readable text
-    const [videoWidthPercent, setVideoWidthPercent] = useState(36); // 36% of screen
-    const [outputHeight, setOutputHeight] = useState(200);
-
     // Chapter context
     const [chapterInfo, setChapterInfo] = useState(null);
     const [loadingChapter, setLoadingChapter] = useState(false);
-
-    // HTML preview
-    const [htmlPreview, setHtmlPreview] = useState('');
-    const iframeRef = useRef(null);
 
     // Coding tasks state
     const [tasks, setTasks] = useState([]);
@@ -172,12 +170,21 @@ export default function LabPage() {
     const [verificationResult, setVerificationResult] = useState(null);
     const [showHints, setShowHints] = useState(false);
 
-    const activeFile = files.find(f => f.id === activeFileId) || files[0];
+    // Layout state
+    const [leftPanelWidth, setLeftPanelWidth] = useState(42); // percentage
+    const [outputHeight, setOutputHeight] = useState(260);
+    const [problemTab, setProblemTab] = useState('description');
+    const [activeTestCaseIdx, setActiveTestCaseIdx] = useState(0);
+    const [customInput, setCustomInput] = useState('');
+    const [videoCollapsed, setVideoCollapsed] = useState(false);
 
-    // ── Load chapter context if plan/chapter params are present ──
+    // HTML preview
+    const [htmlPreview, setHtmlPreview] = useState('');
+    const iframeRef = useRef(null);
+
+    // ── Load chapter context ────────────────────────────────
     useEffect(() => {
         if (!planId) return;
-
         async function loadChapter() {
             setLoadingChapter(true);
             try {
@@ -190,10 +197,6 @@ export default function LabPage() {
                             youtube_url: chapter.youtube_url,
                             chapter_number: parseInt(chapterNum),
                         });
-                        // If no video URL assigned yet, collapse video panel to give maximum space to task & editor
-                        if (!chapter.youtube_url) {
-                            setVideoPanelOpen(false);
-                        }
                     }
                 }
             } catch (err) {
@@ -205,32 +208,19 @@ export default function LabPage() {
         loadChapter();
     }, [planId, chapterNum]);
 
-    // ── Load task into editor ────────────────────────────────
+    // ── Load task into editor ───────────────────────────────
     const loadTask = useCallback((task) => {
         setActiveTask(task);
         setVerificationResult(null);
         setShowHints(false);
+        setActiveTestCaseIdx(0);
         if (task.starter_code) {
-            const ext = task.language === 'python' ? '.py' : '.js';
-            const newFile = {
-                id: `task-${task.id}`,
-                name: `${task.title.toLowerCase().replace(/\s+/g, '_')}${ext}`,
-                language: task.language || 'python',
-                code: task.starter_code,
-            };
-            // Add or replace task file
-            setFiles(prev => {
-                const existing = prev.findIndex(f => f.id === `task-${task.id}`);
-                if (existing >= 0) {
-                    return prev.map((f, i) => i === existing ? newFile : f);
-                }
-                return [...prev, newFile];
-            });
-            setActiveFileId(`task-${task.id}`);
+            setCode(task.starter_code);
+            setLanguage(task.language || 'python');
         }
     }, []);
 
-    // ── Load coding tasks for this chapter ────────────────────
+    // ── Load coding tasks ───────────────────────────────────
     useEffect(() => {
         if (!planId || !chapterNum) return;
         async function loadTasks() {
@@ -239,12 +229,9 @@ export default function LabPage() {
                 const taskList = await lab.getChapterTasks(planId, parseInt(chapterNum));
                 setTasks(taskList || []);
                 if (taskList && taskList.length > 0) {
-                    setTasksPanelOpen(true);
                     const taskId = searchParams.get('taskId');
                     const target = taskId ? taskList.find(t => t.id === taskId) : taskList[0];
-                    if (target) {
-                        loadTask(target);
-                    }
+                    if (target) loadTask(target);
                 }
             } catch (err) {
                 console.error('Failed to load tasks:', err);
@@ -255,15 +242,45 @@ export default function LabPage() {
         loadTasks();
     }, [planId, chapterNum, searchParams, loadTask]);
 
-    // ── Submit code for verification ─────────────────────────
+    // ── Handle language change ──────────────────────────────
+    const handleLanguageChange = useCallback((newLang) => {
+        setLanguage(newLang);
+        if (!activeTask || !activeTask.starter_code) {
+            setCode(DEFAULT_CODE[newLang] || '');
+        }
+    }, [activeTask]);
+
+    // ── Code execution ──────────────────────────────────────
+    const handleRun = useCallback(async () => {
+        if (isRunning) return;
+        setIsRunning(true);
+        setOutput(null);
+
+        try {
+            if (language === 'html') {
+                setHtmlPreview(code);
+                setOutput({ stdout: 'HTML preview updated.', stderr: '', exit_code: 0, execution_time_ms: 0, timed_out: false, language: 'html' });
+            } else if (language === 'javascript') {
+                const result = executeJavaScriptInBrowser(code);
+                setOutput(result);
+            } else {
+                const result = await lab.execute(code, language);
+                setOutput(result);
+            }
+        } catch (err) {
+            setOutput({ stdout: '', stderr: err.message || 'Execution failed', exit_code: 1, execution_time_ms: 0, timed_out: false, language });
+        } finally {
+            setIsRunning(false);
+        }
+    }, [code, language, isRunning]);
+
+    // ── Submit code for verification ────────────────────────
     const handleSubmit = useCallback(async () => {
-        if (!activeTask || !activeFile || submitting) return;
+        if (!activeTask || submitting) return;
         setSubmitting(true);
         setVerificationResult(null);
         try {
-            const result = await lab.submit(
-                activeTask.id, activeFile.code, activeFile.language
-            );
+            const result = await lab.submit(activeTask.id, code, language);
             setVerificationResult(result);
             if (result) {
                 setTasks(prev => prev.map(t => t.id === activeTask.id ? {
@@ -276,92 +293,14 @@ export default function LabPage() {
             setVerificationResult({
                 passed: false, score: 0, total_tests: 0, passed_tests: 0,
                 feedback: err.message || 'Submission failed',
-                failed_tests: [],
+                failed_tests: [], test_results: [], status: 'Runtime Error',
             });
         } finally {
             setSubmitting(false);
         }
-    }, [activeTask, activeFile, submitting]);
+    }, [activeTask, code, language, submitting]);
 
-    // ── File management ─────────────────────────────────────
-    const handleAddFile = useCallback((language) => {
-        const ext = language === 'python' ? '.py' : language === 'javascript' ? '.js' : '.html';
-        const newFile = {
-            id: `file-${++fileCounter}`,
-            name: `untitled${ext}`,
-            language,
-            code: DEFAULT_CODE[language] || '',
-        };
-        setFiles(prev => [...prev, newFile]);
-        setActiveFileId(newFile.id);
-    }, []);
-
-    const handleRemoveFile = useCallback((fileId) => {
-        setFiles(prev => {
-            const remaining = prev.filter(f => f.id !== fileId);
-            if (remaining.length === 0) return prev;
-            if (activeFileId === fileId) {
-                setActiveFileId(remaining[remaining.length - 1].id);
-            }
-            return remaining;
-        });
-    }, [activeFileId]);
-
-    const handleCodeChange = useCallback((newCode) => {
-        setFiles(prev => prev.map(f =>
-            f.id === activeFileId ? { ...f, code: newCode } : f
-        ));
-
-        // Update HTML preview if editing HTML
-        if (activeFile?.language === 'html') {
-            setHtmlPreview(newCode);
-        }
-    }, [activeFileId, activeFile]);
-
-    // ── Code execution ──────────────────────────────────────
-    const handleRun = useCallback(async () => {
-        if (!activeFile || isRunning) return;
-
-        const { code, language } = activeFile;
-        setIsRunning(true);
-        setOutput(null);
-
-        try {
-            if (language === 'html') {
-                // HTML = live preview in iframe
-                setHtmlPreview(code);
-                setOutput({
-                    stdout: 'HTML preview updated.',
-                    stderr: '',
-                    exit_code: 0,
-                    execution_time_ms: 0,
-                    timed_out: false,
-                    language: 'html',
-                });
-            } else if (language === 'javascript') {
-                // JS runs in-browser
-                const result = executeJavaScriptInBrowser(code);
-                setOutput(result);
-            } else {
-                // Python runs on server sandbox
-                const result = await lab.execute(code, language);
-                setOutput(result);
-            }
-        } catch (err) {
-            setOutput({
-                stdout: '',
-                stderr: err.message || 'Execution failed',
-                exit_code: 1,
-                execution_time_ms: 0,
-                timed_out: false,
-                language,
-            });
-        } finally {
-            setIsRunning(false);
-        }
-    }, [activeFile, isRunning]);
-
-    // ── Keyboard shortcut: Ctrl+Enter to run ────────────────
+    // ── Keyboard shortcut ───────────────────────────────────
     useEffect(() => {
         const handleKeyDown = (e) => {
             if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
@@ -373,813 +312,439 @@ export default function LabPage() {
         return () => window.removeEventListener('keydown', handleKeyDown);
     }, [handleRun]);
 
-    // ── Save to localStorage ────────────────────────────────
+    // ── Persist code ────────────────────────────────────────
     useEffect(() => {
-        const key = planId && chapterNum ? `polaris_lab_${planId}_${chapterNum}` : 'polaris_lab_scratch';
-        try {
-            localStorage.setItem(key, JSON.stringify(files));
-        } catch { /* quota exceeded */ }
-    }, [files, planId, chapterNum]);
+        const key = `polaris_lab_${planId}_${chapterNum}_${activeTask?.id || 'scratch'}`;
+        try { localStorage.setItem(key, JSON.stringify({ code, language })); } catch {}
+    }, [code, language, planId, chapterNum, activeTask]);
 
-    // ── Restore from localStorage ───────────────────────────
     useEffect(() => {
-        const key = planId && chapterNum ? `polaris_lab_${planId}_${chapterNum}` : 'polaris_lab_scratch';
+        const key = `polaris_lab_${planId}_${chapterNum}_${activeTask?.id || 'scratch'}`;
         try {
             const saved = localStorage.getItem(key);
             if (saved) {
                 const parsed = JSON.parse(saved);
-                if (Array.isArray(parsed) && parsed.length > 0) {
-                    setFiles(parsed);
-                    setActiveFileId(parsed[0].id);
-                }
+                if (parsed.code) setCode(parsed.code);
+                if (parsed.language) setLanguage(parsed.language);
             }
-        } catch { /* parse error */ }
+        } catch {}
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [planId, chapterNum]);
 
-    // ── Resizing Handlers ────────────────────────────────────
-    const handleTaskResize = useCallback((e) => {
+    // ── Resize handlers ─────────────────────────────────────
+    const handleHorizontalResize = useCallback((e) => {
         e.preventDefault();
         const startX = e.clientX;
-        const startWidth = taskPanelWidth;
-
+        const startWidth = leftPanelWidth;
+        const containerWidth = document.body.clientWidth;
         const onMouseMove = (e) => {
-            const delta = e.clientX - startX;
-            setTaskPanelWidth(Math.max(260, Math.min(650, startWidth + delta)));
+            const delta = ((e.clientX - startX) / containerWidth) * 100;
+            setLeftPanelWidth(Math.max(25, Math.min(60, startWidth + delta)));
         };
         const onMouseUp = () => {
             document.removeEventListener('mousemove', onMouseMove);
             document.removeEventListener('mouseup', onMouseUp);
+            document.body.style.cursor = '';
+            document.body.style.userSelect = '';
         };
+        document.body.style.cursor = 'col-resize';
+        document.body.style.userSelect = 'none';
         document.addEventListener('mousemove', onMouseMove);
         document.addEventListener('mouseup', onMouseUp);
-    }, [taskPanelWidth]);
+    }, [leftPanelWidth]);
 
-    const handleOutputResize = useCallback((e) => {
+    const handleVerticalResize = useCallback((e) => {
         e.preventDefault();
         const startY = e.clientY;
         const startHeight = outputHeight;
-
         const onMouseMove = (e) => {
             const delta = startY - e.clientY;
-            setOutputHeight(Math.max(80, Math.min(500, startHeight + delta)));
+            setOutputHeight(Math.max(100, Math.min(500, startHeight + delta)));
         };
         const onMouseUp = () => {
             document.removeEventListener('mousemove', onMouseMove);
             document.removeEventListener('mouseup', onMouseUp);
+            document.body.style.cursor = '';
+            document.body.style.userSelect = '';
         };
+        document.body.style.cursor = 'row-resize';
+        document.body.style.userSelect = 'none';
         document.addEventListener('mousemove', onMouseMove);
         document.addEventListener('mouseup', onMouseUp);
     }, [outputHeight]);
 
-    // ── Quick Layout presets ─────────────────────────────────
-    const setPresetLayout = (mode) => {
-        if (mode === 'study') {
-            setVideoPanelOpen(true);
-            setTasksPanelOpen(true);
-            setOutputPanelOpen(true);
-        } else if (mode === 'coding') {
-            setVideoPanelOpen(false);
-            setTasksPanelOpen(true);
-            setOutputPanelOpen(true);
-        } else if (mode === 'zen') {
-            setVideoPanelOpen(false);
-            setTasksPanelOpen(false);
-            setOutputPanelOpen(true);
-        }
-    };
+    const sampleCases = activeTask?.sample_test_cases || activeTask?.test_cases || [];
+    const diffColor = DIFF_COLORS[activeTask?.difficulty] || DIFF_COLORS.easy;
 
     return (
-        <div style={{
-            display: 'flex', flexDirection: 'column', height: 'calc(100vh - 56px)',
-            background: '#030303', fontFamily: "'Outfit', system-ui, sans-serif",
-            color: '#fff', overflow: 'hidden'
+        <div className="font-outfit" style={{
+            display: 'flex', flexDirection: 'column',
+            height: 'calc(100vh - 56px)',
+            background: '#000', color: '#fff', overflow: 'hidden',
         }}>
-            {/* ── Top Bar / Workspace Controller ────────────── */}
+            {/* ── Top Bar ──────────────────────────────────────── */}
             <div style={{
                 display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                padding: '8px 16px', borderBottom: '1px solid rgba(255,255,255,0.06)',
-                background: '#080808', flexShrink: 0, gap: '12px', flexWrap: 'wrap'
+                padding: '10px 20px',
+                borderBottom: '1px solid rgba(255,255,255,0.05)',
+                background: '#000', flexShrink: 0,
             }}>
-                {/* Left: Branding & Chapter Title */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', minWidth: 0 }}>
-                    {planId && (
-                        <Link
-                            to="/learning"
-                            style={{
-                                display: 'flex', alignItems: 'center', gap: '4px',
-                                color: '#a1a1aa', textDecoration: 'none', fontSize: '11px',
-                                padding: '4px 8px', borderRadius: '6px',
-                                background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)'
-                            }}
-                            title="Return to Learning Roadmap"
-                        >
-                            <ArrowLeft size={12} /> Course
-                        </Link>
-                    )}
+                {/* Left: Back + Title */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    <Link
+                        to="/learning"
+                        className="text-zinc-500 hover:text-white transition-all"
+                        style={{
+                            display: 'flex', alignItems: 'center', gap: '4px',
+                            fontSize: '10px', fontWeight: 600, textDecoration: 'none',
+                            padding: '5px 12px', borderRadius: '20px',
+                            background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)',
+                        }}
+                    >
+                        <ArrowLeft size={11} /> Learning
+                    </Link>
 
-                    <div style={{
-                        width: '30px', height: '30px', borderRadius: '10px',
-                        background: 'linear-gradient(135deg, rgba(167,139,250,0.2) 0%, rgba(99,102,241,0.2) 100%)',
-                        border: '1px solid rgba(167,139,250,0.3)',
-                        display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0
-                    }}>
-                        <Beaker size={15} style={{ color: '#c084fc' }} />
-                    </div>
-
-                    <div style={{ minWidth: 0 }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                            <span style={{ fontSize: '13px', fontWeight: 700, letterSpacing: '0.04em', color: '#fff' }}>
-                                Polaris Lab
-                            </span>
-                            {chapterInfo && (
-                                <span style={{
-                                    fontSize: '9px', fontWeight: 800, textTransform: 'uppercase',
-                                    letterSpacing: '0.15em', padding: '2px 8px', borderRadius: '999px',
-                                    background: 'rgba(167,139,250,0.12)', color: '#c084fc',
-                                    border: '1px solid rgba(167,139,250,0.25)'
-                                }}>
-                                    Chapter {chapterInfo.chapter_number}
-                                </span>
-                            )}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <div className="p-2 bg-white/5 rounded-xl border border-white/10">
+                            <Beaker size={14} className="text-white" />
                         </div>
-                        <div style={{
-                            fontSize: '11px', color: '#71717a', whiteSpace: 'nowrap',
-                            overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '340px'
-                        }}>
-                            {chapterInfo ? chapterInfo.title : 'Interactive Code Sandbox & IDE'}
+                        <div>
+                            <div className="text-[13px] font-semibold tracking-wide text-white">Polaris Lab</div>
+                            <div className="text-[10px] text-zinc-600 uppercase tracking-[0.15em]">
+                                Day {chapterInfo?.chapter_number || chapterNum} • {chapterInfo?.title || 'Loading...'}
+                            </div>
                         </div>
                     </div>
                 </div>
 
-                {/* Center: Layout Mode Switches */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: '4px', background: 'rgba(255,255,255,0.03)', padding: '3px', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.05)' }}>
-                    <button
-                        onClick={() => setPresetLayout('study')}
-                        title="Study Mode: Video + Problem + Code"
-                        style={{
-                            background: videoPanelOpen && tasksPanelOpen ? 'rgba(255,255,255,0.1)' : 'transparent',
-                            color: videoPanelOpen && tasksPanelOpen ? '#fff' : '#71717a',
-                            border: 'none', borderRadius: '7px', padding: '4px 10px',
-                            fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em',
-                            cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '5px', transition: 'all 0.15s'
-                        }}
-                    >
-                        <Columns size={12} /> Study
-                    </button>
-                    <button
-                        onClick={() => setPresetLayout('coding')}
-                        title="Problem & Code Mode: Hide Video, Maximize Problem & Code"
-                        style={{
-                            background: !videoPanelOpen && tasksPanelOpen ? 'rgba(167,139,250,0.2)' : 'transparent',
-                            color: !videoPanelOpen && tasksPanelOpen ? '#c084fc' : '#71717a',
-                            border: 'none', borderRadius: '7px', padding: '4px 10px',
-                            fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em',
-                            cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '5px', transition: 'all 0.15s'
-                        }}
-                    >
-                        <BookOpen size={12} /> Problem & Code
-                    </button>
-                    <button
-                        onClick={() => setPresetLayout('zen')}
-                        title="Zen Mode: Code Editor Only"
-                        style={{
-                            background: !videoPanelOpen && !tasksPanelOpen ? 'rgba(255,255,255,0.1)' : 'transparent',
-                            color: !videoPanelOpen && !tasksPanelOpen ? '#fff' : '#71717a',
-                            border: 'none', borderRadius: '7px', padding: '4px 10px',
-                            fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em',
-                            cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '5px', transition: 'all 0.15s'
-                        }}
-                    >
-                        <Maximize2 size={12} /> Zen Code
-                    </button>
-                </div>
-
-                {/* Right: Section Toggle Chips & Reset */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    {/* Toggle Problem Statement */}
-                    <button
-                        onClick={() => setTasksPanelOpen(!tasksPanelOpen)}
-                        title={tasksPanelOpen ? 'Hide Problem Description' : 'Show Problem Description'}
-                        style={{
-                            background: tasksPanelOpen ? 'rgba(167,139,250,0.15)' : 'rgba(255,255,255,0.03)',
-                            border: `1px solid ${tasksPanelOpen ? 'rgba(167,139,250,0.3)' : 'rgba(255,255,255,0.08)'}`,
-                            borderRadius: '8px', padding: '5px 10px', cursor: 'pointer',
-                            color: tasksPanelOpen ? '#c084fc' : '#71717a',
-                            display: 'flex', alignItems: 'center', gap: '5px', transition: 'all 0.2s',
-                            fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em',
-                        }}
-                    >
-                        <ListChecks size={12} />
-                        Problem {tasks.length > 0 ? `(${tasks.length})` : ''}
-                    </button>
-
-                    {/* Toggle Video */}
-                    <button
-                        onClick={() => setVideoPanelOpen(!videoPanelOpen)}
-                        title={videoPanelOpen ? 'Hide Video' : 'Show Video'}
-                        style={{
-                            background: videoPanelOpen ? 'rgba(255,255,255,0.08)' : 'rgba(255,255,255,0.03)',
-                            border: `1px solid ${videoPanelOpen ? 'rgba(255,255,255,0.2)' : 'rgba(255,255,255,0.08)'}`,
-                            borderRadius: '8px', padding: '5px 10px', cursor: 'pointer',
-                            color: videoPanelOpen ? '#fff' : '#71717a',
-                            display: 'flex', alignItems: 'center', gap: '5px', transition: 'all 0.2s',
-                            fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em',
-                        }}
-                    >
-                        {videoPanelOpen ? <PanelLeftClose size={12} /> : <PanelLeftOpen size={12} />}
-                        Video
-                    </button>
-
-                    {/* Reset Button */}
-                    <button
-                        onClick={() => {
-                            if (confirm('Reset all files to default starter code?')) {
-                                setFiles([
-                                    { id: 'file-0', name: 'main.py', language: 'python', code: DEFAULT_CODE.python },
-                                ]);
-                                setActiveFileId('file-0');
-                                setOutput(null);
-                                setVerificationResult(null);
-                            }
-                        }}
-                        title="Reset code files"
-                        style={{
-                            background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)',
-                            borderRadius: '8px', padding: '5px 9px', cursor: 'pointer', color: '#71717a',
-                            display: 'flex', alignItems: 'center', gap: '5px', transition: 'all 0.2s',
-                            fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em',
-                        }}
-                    >
-                        <RotateCcw size={11} /> Reset
-                    </button>
-                </div>
-            </div>
-
-            {/* ── Main Workspace Area ────────────────────────── */}
-            <div style={{ display: 'flex', flex: 1, overflow: 'hidden', position: 'relative' }}>
-                {/* ── Panel 1: Video Player (Collapsible) ──────── */}
-                {videoPanelOpen && (
-                    <div style={{
-                        width: videoMinimized ? 'auto' : `${videoWidthPercent}%`,
-                        minWidth: videoMinimized ? 0 : '280px',
-                        maxWidth: '50%',
-                        borderRight: '1px solid rgba(255,255,255,0.06)',
-                        display: 'flex', flexDirection: 'column',
-                        padding: '8px', background: '#050505',
-                        transition: 'width 0.25s ease', flexShrink: 0
-                    }}>
-                        <VideoPlayer
-                            url={chapterInfo?.youtube_url}
-                            title={chapterInfo?.title}
-                            onMinimize={() => setVideoMinimized(!videoMinimized)}
-                            isMinimized={videoMinimized}
-                        />
+                {/* Center: Problem pills */}
+                {tasks.length > 1 && (
+                    <div className="flex bg-white/5 p-1 rounded-full border border-white/5">
+                        {tasks.map((t, idx) => (
+                            <button
+                                key={t.id}
+                                onClick={() => loadTask(t)}
+                                className={`px-4 py-1.5 rounded-full text-[9px] font-bold uppercase tracking-widest transition-all flex items-center gap-1.5 ${
+                                    activeTask?.id === t.id
+                                        ? 'bg-white text-black shadow-xl'
+                                        : 'text-zinc-500 hover:text-white'
+                                }`}
+                            >
+                                {t.solved && <CheckCircle2 size={9} />}
+                                Q{idx + 1}
+                            </button>
+                        ))}
                     </div>
                 )}
 
-                {/* ── Panel 2: Problem Statement & Tasks ───────── */}
-                {tasksPanelOpen && (
-                    <div style={{
-                        width: `${taskPanelWidth}px`,
-                        minWidth: '280px',
-                        maxWidth: '650px',
-                        borderRight: '1px solid rgba(255,255,255,0.06)',
-                        display: 'flex', flexDirection: 'column',
-                        background: '#09090b', overflow: 'hidden',
-                        flexShrink: 0, position: 'relative'
-                    }}>
-                        {/* Task Panel Header / Tabs */}
-                        <div style={{
-                            padding: '10px 14px', borderBottom: '1px solid rgba(255,255,255,0.06)',
-                            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                            background: '#0c0c0e'
-                        }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', overflowX: 'auto' }}>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                    <BookOpen size={14} style={{ color: '#c084fc' }} />
-                                    <span style={{
-                                        fontSize: '11px', fontWeight: 800, textTransform: 'uppercase',
-                                        letterSpacing: '0.12em', color: '#e4e4e7'
-                                    }}>
-                                        Challenge
-                                    </span>
-                                </div>
+                {/* Right: Reset */}
+                <button
+                    onClick={() => {
+                        setCode(activeTask?.starter_code || DEFAULT_CODE[language] || '');
+                        setOutput(null);
+                        setVerificationResult(null);
+                    }}
+                    className="text-zinc-500 hover:text-white transition-all"
+                    style={{
+                        display: 'flex', alignItems: 'center', gap: '5px',
+                        padding: '5px 12px', borderRadius: '20px', fontSize: '10px', fontWeight: 600,
+                        background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)',
+                        cursor: 'pointer',
+                    }}
+                >
+                    <RotateCcw size={10} /> Reset Code
+                </button>
+            </div>
 
-                                {/* Task Pills if multiple tasks */}
-                                {tasks.length > 1 && (
-                                    <div style={{ display: 'flex', gap: '4px', marginLeft: '6px' }}>
-                                        {tasks.map((t, idx) => (
-                                            <button
-                                                key={t.id}
-                                                onClick={() => loadTask(t)}
-                                                style={{
-                                                    padding: '2px 8px', borderRadius: '6px', fontSize: '9px',
-                                                    fontWeight: 700, border: 'none', cursor: 'pointer',
-                                                    background: activeTask?.id === t.id ? '#c084fc' : 'rgba(255,255,255,0.06)',
-                                                    color: activeTask?.id === t.id ? '#000' : '#a1a1aa',
-                                                    transition: 'all 0.15s'
-                                                }}
-                                            >
-                                                #{idx + 1}
-                                            </button>
-                                        ))}
-                                    </div>
-                                )}
-                            </div>
+            {/* ── Main Workspace ───────────────────────────────── */}
+            <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
 
+                {/* ══════════════ LEFT PANEL ══════════════ */}
+                <div style={{
+                    width: `${leftPanelWidth}%`, display: 'flex', flexDirection: 'column',
+                    overflow: 'hidden', borderRight: '1px solid rgba(255,255,255,0.05)',
+                }}>
+                    {/* ── TOP: Problem Description ─────────────── */}
+                    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+                        {/* Problem Tabs */}
+                        <div className="flex items-center gap-1 px-4 py-2 border-b border-white/5">
                             <button
-                                onClick={() => setTasksPanelOpen(false)}
-                                title="Collapse problem panel"
-                                style={{
-                                    background: 'transparent', border: 'none', cursor: 'pointer',
-                                    color: '#71717a', padding: '3px', borderRadius: '4px',
-                                    display: 'flex', alignItems: 'center'
-                                }}
+                                onClick={() => setProblemTab('description')}
+                                className={`px-3 py-1.5 rounded-lg text-[10px] font-semibold uppercase tracking-[0.08em] transition-all flex items-center gap-1.5 ${
+                                    problemTab === 'description' ? 'bg-white/10 text-white' : 'text-zinc-600 hover:text-zinc-400'
+                                }`}
                             >
-                                <PanelLeftClose size={13} />
+                                <FileText size={11} /> Description
+                            </button>
+                            <button
+                                onClick={() => setProblemTab('submissions')}
+                                className={`px-3 py-1.5 rounded-lg text-[10px] font-semibold uppercase tracking-[0.08em] transition-all flex items-center gap-1.5 ${
+                                    problemTab === 'submissions' ? 'bg-white/10 text-white' : 'text-zinc-600 hover:text-zinc-400'
+                                }`}
+                            >
+                                <History size={11} /> Submissions
                             </button>
                         </div>
 
-                        {/* Task Content: Full high-contrast readable question */}
-                        <div style={{
-                            flex: 1, overflowY: 'auto', padding: '16px 18px',
-                            display: 'flex', flexDirection: 'column', gap: '16px'
-                        }}>
-                            {activeTask ? (
-                                <>
-                                    {/* Task Title & Badges */}
-                                    <div>
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', marginBottom: '8px' }}>
-                                            <span style={{
-                                                fontSize: '9px', fontWeight: 800, textTransform: 'uppercase',
-                                                letterSpacing: '0.1em', padding: '3px 8px', borderRadius: '6px',
-                                                background: activeTask.difficulty === 'easy' ? 'rgba(34,197,94,0.12)'
-                                                    : activeTask.difficulty === 'hard' ? 'rgba(239,68,68,0.12)'
-                                                        : 'rgba(251,191,36,0.12)',
-                                                color: activeTask.difficulty === 'easy' ? '#4ade80'
-                                                    : activeTask.difficulty === 'hard' ? '#f87171'
-                                                        : '#fcd34d',
-                                                border: `1px solid ${activeTask.difficulty === 'easy' ? 'rgba(34,197,94,0.25)' : activeTask.difficulty === 'hard' ? 'rgba(239,68,68,0.25)' : 'rgba(251,191,36,0.25)'}`
-                                            }}>
-                                                {activeTask.difficulty}
-                                            </span>
-
-                                            <span style={{
-                                                fontSize: '9px', fontWeight: 700, textTransform: 'uppercase',
-                                                letterSpacing: '0.1em', padding: '3px 8px', borderRadius: '6px',
-                                                background: 'rgba(255,255,255,0.05)', color: '#a1a1aa',
-                                                border: '1px solid rgba(255,255,255,0.08)'
-                                            }}>
-                                                {activeTask.language || 'Python'}
-                                            </span>
-
-                                            {activeTask.solved ? (
-                                                <span style={{
-                                                    fontSize: '9px', fontWeight: 700, textTransform: 'uppercase',
-                                                    letterSpacing: '0.1em', padding: '3px 8px', borderRadius: '6px',
-                                                    background: 'rgba(34,197,94,0.12)', color: '#4ade80',
-                                                    border: '1px solid rgba(34,197,94,0.25)',
-                                                    display: 'flex', alignItems: 'center', gap: '4px'
-                                                }}>
-                                                    <CheckCircle2 size={10} /> Solved
-                                                </span>
-                                            ) : (
-                                                <span style={{
-                                                    fontSize: '9px', fontWeight: 700, textTransform: 'uppercase',
-                                                    letterSpacing: '0.1em', padding: '3px 8px', borderRadius: '6px',
-                                                    background: 'rgba(167,139,250,0.1)', color: '#c084fc',
-                                                    border: '1px solid rgba(167,139,250,0.2)'
-                                                }}>
-                                                    {activeTask.test_count} Test Cases
-                                                </span>
-                                            )}
-                                        </div>
-
-                                        <h2 style={{
-                                            fontSize: '18px', fontWeight: 700, color: '#ffffff',
-                                            lineHeight: '1.35', letterSpacing: '-0.01em', margin: 0
-                                        }}>
-                                            {activeTask.title}
-                                        </h2>
-                                    </div>
-
-                                    {/* Problem Description with comfortable, large, high-contrast font */}
-                                    <div style={{
-                                        background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)',
-                                        borderRadius: '14px', padding: '14px 16px'
-                                    }}>
-                                        <div style={{
-                                            fontSize: '10px', fontWeight: 800, textTransform: 'uppercase',
-                                            letterSpacing: '0.15em', color: '#c084fc', marginBottom: '8px'
-                                        }}>
-                                            Problem Statement
-                                        </div>
-                                        <div style={{
-                                            fontSize: '14px', color: '#f4f4f5', lineHeight: '1.7',
-                                            fontFamily: "'Outfit', system-ui, sans-serif", fontWeight: 400,
-                                            whiteSpace: 'pre-wrap'
-                                        }}>
-                                            {activeTask.description}
-                                        </div>
-                                    </div>
-
-                                    {/* Function Input Guide Box */}
-                                    <div style={{
-                                        background: 'rgba(99,102,241,0.05)', border: '1px solid rgba(99,102,241,0.2)',
-                                        borderRadius: '12px', padding: '12px 14px', fontSize: '12px', color: '#e0e7ff', lineHeight: '1.6'
-                                    }}>
-                                        <div style={{ fontWeight: 800, color: '#a5b4fc', marginBottom: '4px', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
-                                            <Sparkles size={13} /> How Dynamic Test Verification Works
-                                        </div>
+                        {/* Problem Content */}
+                        <div style={{ flex: 1, overflowY: 'auto', padding: '16px 20px' }}>
+                            {problemTab === 'description' ? (
+                                activeTask ? (
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                                        {/* Title + Badges */}
                                         <div>
-                                            Your function receives dynamic test inputs as arguments (e.g. <code>numbers = [1, 2, 3, 4, 5]</code>).
-                                            Make sure your function uses <strong><code style={{ color: '#4ade80' }}>return</code></strong> to return the result value instead of only printing with <code>print()</code>.
-                                        </div>
-                                    </div>
-
-                                    {/* Sample & Hidden Test Cases Preview */}
-                                    {((activeTask.sample_test_cases && activeTask.sample_test_cases.length > 0) || (activeTask.test_cases && activeTask.test_cases.length > 0)) && (
-                                        <div style={{
-                                            background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(255,255,255,0.06)',
-                                            borderRadius: '14px', padding: '14px 16px'
-                                        }}>
-                                            <div style={{
-                                                fontSize: '10px', fontWeight: 800, textTransform: 'uppercase',
-                                                letterSpacing: '0.15em', color: '#c084fc', marginBottom: '10px',
-                                                display: 'flex', alignItems: 'center', justifyContent: 'space-between'
-                                            }}>
-                                                <span>Sample Test Cases</span>
-                                                <span style={{
-                                                    fontSize: '9px', color: '#a1a1aa', background: 'rgba(255,255,255,0.05)',
-                                                    padding: '2px 8px', borderRadius: '6px', border: '1px solid rgba(255,255,255,0.08)'
+                                            <div className="flex items-center gap-2 flex-wrap mb-2">
+                                                <span className="text-[9px] font-bold uppercase tracking-[0.08em] px-2.5 py-1 rounded-md" style={{
+                                                    background: diffColor.bg, color: diffColor.text, border: `1px solid ${diffColor.border}`,
                                                 }}>
-                                                    {(activeTask.sample_test_cases || activeTask.test_cases || []).length} Sample + 2 Hidden
+                                                    {activeTask.difficulty}
                                                 </span>
+                                                {activeTask.solved && (
+                                                    <span className="text-[9px] font-bold uppercase tracking-[0.08em] px-2.5 py-1 rounded-md flex items-center gap-1"
+                                                        style={{ background: 'rgba(34,197,94,0.1)', color: '#4ade80', border: '1px solid rgba(34,197,94,0.2)' }}>
+                                                        <CheckCircle2 size={9} /> Solved
+                                                    </span>
+                                                )}
+                                                {activeTask.best_score != null && activeTask.best_score > 0 && (
+                                                    <span className="text-[9px] font-medium text-zinc-500 bg-white/5 px-2.5 py-1 rounded-md">
+                                                        Best: {activeTask.best_score}%
+                                                    </span>
+                                                )}
                                             </div>
+                                            <h2 className="text-lg font-semibold text-white leading-snug">{activeTask.title}</h2>
+                                        </div>
 
-                                            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                                                {(activeTask.sample_test_cases || activeTask.test_cases || []).map((tc, idx) => (
-                                                    <div
-                                                        key={idx}
-                                                        style={{
-                                                            background: '#040404', border: '1px solid rgba(255,255,255,0.05)',
-                                                            borderRadius: '10px', padding: '10px 12px',
-                                                            fontFamily: "'JetBrains Mono', monospace", fontSize: '11px'
-                                                        }}
-                                                    >
-                                                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
-                                                            <span style={{ fontSize: '9px', fontWeight: 800, color: '#818cf8', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
-                                                                Sample Case {idx + 1}
-                                                            </span>
+                                        {/* Problem Description */}
+                                        <div className="bg-zinc-900/50 border border-white/5 rounded-2xl p-4">
+                                            <div className="text-[9px] font-bold uppercase tracking-[0.15em] text-zinc-500 mb-2">Problem Statement</div>
+                                            <div className="text-[13px] text-zinc-300 leading-[1.8] whitespace-pre-wrap">
+                                                {activeTask.description}
+                                            </div>
+                                        </div>
+
+                                        {/* Sample Test Cases */}
+                                        {sampleCases.length > 0 && (
+                                            <div className="bg-zinc-900/30 border border-white/5 rounded-2xl p-4">
+                                                <div className="text-[9px] font-bold uppercase tracking-[0.15em] text-zinc-500 mb-3 flex items-center justify-between">
+                                                    <span>Examples</span>
+                                                    <span className="text-zinc-600 bg-white/5 px-2 py-0.5 rounded text-[8px]">{sampleCases.length} sample + 2 hidden</span>
+                                                </div>
+                                                <div className="flex flex-col gap-2">
+                                                    {sampleCases.map((tc, idx) => (
+                                                        <div key={idx} className="bg-black/40 border border-white/5 rounded-xl p-3 font-mono text-[12px]">
+                                                            <div className="text-[9px] font-bold text-zinc-600 mb-2 uppercase tracking-wider">Example {idx + 1}</div>
+                                                            <div className="mb-1">
+                                                                <span className="text-zinc-600 text-[10px] font-semibold">Input: </span>
+                                                                <span className="text-zinc-300">{tc.input}</span>
+                                                            </div>
+                                                            <div>
+                                                                <span className="text-zinc-600 text-[10px] font-semibold">Output: </span>
+                                                                <span className="text-emerald-400">{tc.expected_output}</span>
+                                                            </div>
                                                         </div>
-                                                        <div style={{ display: 'flex', gap: '8px', marginBottom: '4px' }}>
-                                                            <span style={{ color: '#71717a', userSelect: 'none', width: '65px', flexShrink: 0 }}>Input:</span>
-                                                            <span style={{ color: '#4ade80', fontWeight: 600 }}>{tc.input}</span>
-                                                        </div>
-                                                        <div style={{ display: 'flex', gap: '8px' }}>
-                                                            <span style={{ color: '#71717a', userSelect: 'none', width: '65px', flexShrink: 0 }}>Expected:</span>
-                                                            <span style={{ color: '#c084fc', fontWeight: 600 }}>{tc.expected_output}</span>
-                                                        </div>
+                                                    ))}
+                                                    <div className="text-[10px] text-zinc-600 flex items-center gap-1.5 mt-1">
+                                                        🔒 2 Hidden test cases evaluated on Submit
                                                     </div>
-                                                ))}
-
-                                                {/* Hidden Cases Notice */}
-                                                <div style={{
-                                                    background: 'rgba(255,255,255,0.02)', border: '1px dashed rgba(255,255,255,0.1)',
-                                                    borderRadius: '8px', padding: '8px 12px', display: 'flex', alignItems: 'center', gap: '8px',
-                                                    fontSize: '11px', color: '#71717a'
-                                                }}>
-                                                    <span>🔒</span>
-                                                    <span>2 Hidden Test Cases evaluated automatically on <strong>Submit</strong></span>
                                                 </div>
                                             </div>
-                                        </div>
-                                    )}
+                                        )}
 
-                                    {/* Collapsible Hints */}
-                                    {activeTask.hints && activeTask.hints.length > 0 && (
-                                        <div style={{
-                                            background: 'rgba(251,191,36,0.04)', border: '1px solid rgba(251,191,36,0.15)',
-                                            borderRadius: '14px', overflow: 'hidden'
-                                        }}>
-                                            <button
-                                                onClick={() => setShowHints(!showHints)}
-                                                style={{
-                                                    width: '100%', padding: '12px 14px', background: 'transparent',
-                                                    border: 'none', cursor: 'pointer', display: 'flex',
-                                                    alignItems: 'center', justifyContent: 'space-between',
-                                                    color: '#fbbf24', fontSize: '11px', fontWeight: 700,
-                                                    textTransform: 'uppercase', letterSpacing: '0.1em'
-                                                }}
-                                            >
-                                                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                                    <Lightbulb size={13} />
-                                                    <span>Need a Hint? ({activeTask.hints.length})</span>
-                                                </div>
-                                                {showHints ? <ChevronUp size={13} /> : <ChevronDown size={13} />}
-                                            </button>
+                                        {/* Hints */}
+                                        {activeTask.hints && activeTask.hints.length > 0 && (
+                                            <div className="bg-zinc-900/30 border border-white/5 rounded-2xl overflow-hidden">
+                                                <button
+                                                    onClick={() => setShowHints(!showHints)}
+                                                    className="w-full flex items-center justify-between px-4 py-3 text-zinc-400 hover:text-white transition-all"
+                                                    style={{ background: 'transparent', border: 'none', cursor: 'pointer', fontSize: '11px', fontWeight: 600 }}
+                                                >
+                                                    <div className="flex items-center gap-1.5">
+                                                        <Lightbulb size={12} /> Hints ({activeTask.hints.length})
+                                                    </div>
+                                                    {showHints ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
+                                                </button>
+                                                {showHints && (
+                                                    <div className="px-4 pb-3">
+                                                        <ul className="list-disc pl-4 space-y-1">
+                                                            {activeTask.hints.map((hint, i) => (
+                                                                <li key={i} className="text-[12px] text-zinc-400 leading-relaxed">{hint}</li>
+                                                            ))}
+                                                        </ul>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        )}
 
-                                            {showHints && (
-                                                <div style={{ padding: '0 14px 14px 14px' }}>
-                                                    <ul style={{ margin: 0, paddingLeft: '18px', listStyleType: 'disc' }}>
-                                                        {activeTask.hints.map((hint, i) => (
-                                                            <li key={i} style={{
-                                                                fontSize: '12px', color: '#d4d4d8',
-                                                                lineHeight: '1.6', marginBottom: '4px'
-                                                            }}>
-                                                                {hint}
-                                                            </li>
-                                                        ))}
-                                                    </ul>
-                                                </div>
-                                            )}
+                                        {/* I/O note for compiled languages */}
+                                        {(language === 'cpp' || language === 'java') && (
+                                            <div className="bg-indigo-950/30 border border-indigo-900/30 rounded-xl p-3 text-[11px] text-indigo-300 leading-relaxed">
+                                                <strong>💡 {language === 'cpp' ? 'C++' : 'Java'} I/O:</strong> Read from{' '}
+                                                <code className="text-emerald-400">{language === 'cpp' ? 'cin' : 'Scanner'}</code> and print to{' '}
+                                                <code className="text-emerald-400">{language === 'cpp' ? 'cout' : 'System.out'}</code>. Test cases use stdin.
+                                            </div>
+                                        )}
+                                    </div>
+                                ) : (
+                                    <div className="text-center py-16 text-zinc-600">
+                                        <Code2 size={28} className="mx-auto mb-3 opacity-30" />
+                                        <div className="text-[13px] font-medium text-zinc-500 mb-1">
+                                            {loadingTasks ? 'Loading problems...' : 'No Problem Selected'}
                                         </div>
-                                    )}
-                                </>
+                                        <div className="text-[11px]">Select a problem from the top bar.</div>
+                                    </div>
+                                )
                             ) : (
-                                <div style={{ textAlign: 'center', padding: '40px 16px', color: '#71717a' }}>
-                                    <FileCode size={28} style={{ margin: '0 auto 12px auto', opacity: 0.4 }} />
-                                    <div style={{ fontSize: '13px', fontWeight: 600, color: '#d4d4d8', marginBottom: '4px' }}>
-                                        No Specific Challenge Selected
-                                    </div>
-                                    <div style={{ fontSize: '11px', lineHeight: '1.5' }}>
-                                        Select a challenge from the roadmap or write scratch code directly in the editor.
-                                    </div>
+                                <div className="text-center py-16 text-zinc-600">
+                                    <History size={22} className="mx-auto mb-2 opacity-30" />
+                                    <div className="text-[12px]">Submission history coming soon.</div>
                                 </div>
                             )}
                         </div>
-
-                        {/* Drag Resize Handle between Problem Panel and Editor */}
-                        <div
-                            onMouseDown={handleTaskResize}
-                            title="Drag to resize Problem Panel"
-                            style={{
-                                position: 'absolute', top: 0, right: 0, width: '6px', height: '100%',
-                                cursor: 'col-resize', background: 'transparent', zIndex: 10
-                            }}
-                            onMouseEnter={e => { e.currentTarget.style.background = 'rgba(167,139,250,0.4)'; }}
-                            onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
-                        />
                     </div>
-                )}
 
-                {/* ── Panel 3: Monaco Editor & Output Console ──── */}
+                    {/* ── BOTTOM: Video Player ─────────────────── */}
+                    <div style={{
+                        borderTop: '1px solid rgba(255,255,255,0.05)',
+                        flexShrink: 0,
+                    }}>
+                        {/* Collapse toggle */}
+                        <button
+                            onClick={() => setVideoCollapsed(!videoCollapsed)}
+                            className="w-full flex items-center justify-between px-4 py-2 text-zinc-500 hover:text-white transition-all"
+                            style={{ background: 'rgba(255,255,255,0.02)', border: 'none', cursor: 'pointer', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em' }}
+                        >
+                            <div className="flex items-center gap-2">
+                                <Youtube size={12} /> Lecture Video
+                            </div>
+                            {videoCollapsed ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
+                        </button>
+
+                        {!videoCollapsed && (
+                            <div style={{ height: '240px', background: '#000' }}>
+                                {chapterInfo?.youtube_url ? (
+                                    <VideoPlayer
+                                        url={chapterInfo.youtube_url}
+                                        title={chapterInfo.title}
+                                        onMinimize={() => setVideoCollapsed(true)}
+                                        isMinimized={false}
+                                    />
+                                ) : (
+                                    <div className="flex items-center justify-center h-full text-zinc-700 text-[11px]">
+                                        <div className="text-center">
+                                            <Youtube size={24} className="mx-auto mb-2 opacity-30" />
+                                            <div>No video available for this chapter</div>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        )}
+                    </div>
+                </div>
+
+                {/* ── Horizontal Resize Handle ─────────────────── */}
+                <div
+                    onMouseDown={handleHorizontalResize}
+                    style={{
+                        width: '4px', cursor: 'col-resize', background: 'transparent',
+                        transition: 'background 0.15s', flexShrink: 0,
+                    }}
+                    onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.15)'; }}
+                    onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
+                />
+
+                {/* ══════════════ RIGHT PANEL ══════════════ */}
                 <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', minWidth: 0 }}>
-                    {/* File Tabs & Actions */}
-                    <FileExplorer
-                        files={files}
-                        activeFileId={activeFileId}
-                        onSelectFile={setActiveFileId}
-                        onAddFile={handleAddFile}
-                        onRemoveFile={handleRemoveFile}
-                    />
-
-                    {/* Editor View */}
-                    <div style={{ flex: 1, minHeight: 0, position: 'relative' }}>
-                        {activeFile?.language === 'html' && htmlPreview ? (
+                    {/* Code Editor */}
+                    <div style={{ flex: 1, minHeight: 0 }}>
+                        {language === 'html' && htmlPreview ? (
                             <div style={{ display: 'flex', height: '100%' }}>
                                 <div style={{ flex: 1, minWidth: 0 }}>
                                     <CodeEditor
-                                        code={activeFile.code}
-                                        language={activeFile.language}
-                                        onChange={handleCodeChange}
-                                        onRun={handleRun}
-                                        isRunning={isRunning}
+                                        code={code} language={language} onChange={setCode}
+                                        onRun={handleRun} onLanguageChange={handleLanguageChange} isRunning={isRunning}
                                     />
                                 </div>
-                                <div style={{
-                                    flex: 1, minWidth: 0,
-                                    borderLeft: '1px solid rgba(255,255,255,0.06)',
-                                }}>
-                                    <div style={{
-                                        padding: '6px 12px', background: '#030303',
-                                        borderBottom: '1px solid rgba(255,255,255,0.06)',
-                                        fontSize: '10px', fontWeight: 700, textTransform: 'uppercase',
-                                        letterSpacing: '0.15em', color: '#71717a',
-                                    }}>
+                                <div style={{ flex: 1, minWidth: 0, borderLeft: '1px solid rgba(255,255,255,0.05)' }}>
+                                    <div className="px-3 py-1.5 bg-black border-b border-white/5 text-[9px] font-bold uppercase tracking-[0.15em] text-zinc-600">
                                         Live Preview
                                     </div>
-                                    <iframe
-                                        ref={iframeRef}
-                                        srcDoc={htmlPreview}
-                                        title="HTML Preview"
-                                        style={{
-                                            width: '100%', height: 'calc(100% - 32px)',
-                                            border: 'none', background: '#fff',
-                                        }}
+                                    <iframe ref={iframeRef} srcDoc={htmlPreview} title="HTML Preview"
+                                        style={{ width: '100%', height: 'calc(100% - 28px)', border: 'none', background: '#fff' }}
                                         sandbox="allow-scripts"
                                     />
                                 </div>
                             </div>
                         ) : (
                             <CodeEditor
-                                code={activeFile?.code || ''}
-                                language={activeFile?.language || 'python'}
-                                onChange={handleCodeChange}
-                                onRun={handleRun}
-                                isRunning={isRunning}
+                                code={code} language={language} onChange={setCode}
+                                onRun={handleRun} onLanguageChange={handleLanguageChange} isRunning={isRunning}
                             />
                         )}
                     </div>
 
-                    {/* Vertical Resize Handle for Output Terminal */}
-                    {outputPanelOpen && (
-                        <div
-                            onMouseDown={handleOutputResize}
-                            title="Drag to resize Terminal"
-                            style={{
-                                height: '5px', cursor: 'row-resize',
-                                background: 'rgba(255,255,255,0.03)',
-                                borderTop: '1px solid rgba(255,255,255,0.06)',
-                                borderBottom: '1px solid rgba(255,255,255,0.06)',
-                                transition: 'background 0.15s',
-                            }}
-                            onMouseEnter={e => { e.currentTarget.style.background = 'rgba(167,139,250,0.3)'; }}
-                            onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.03)'; }}
+                    {/* Vertical Resize Handle */}
+                    <div
+                        onMouseDown={handleVerticalResize}
+                        style={{ height: '4px', cursor: 'row-resize', background: 'rgba(255,255,255,0.02)', borderTop: '1px solid rgba(255,255,255,0.05)', flexShrink: 0 }}
+                        onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.1)'; }}
+                        onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.02)'; }}
+                    />
+
+                    {/* Output Panel */}
+                    <div style={{ height: `${outputHeight}px`, flexShrink: 0 }}>
+                        <OutputPanel
+                            output={output}
+                            isRunning={isRunning || submitting}
+                            onClear={() => { setOutput(null); setVerificationResult(null); }}
+                            verificationResult={verificationResult}
+                            activeTestCaseIdx={activeTestCaseIdx}
+                            onTestCaseSelect={setActiveTestCaseIdx}
+                            sampleTestCases={sampleCases}
+                            customInput={customInput}
+                            onCustomInputChange={setCustomInput}
                         />
-                    )}
+                    </div>
 
-                    {outputPanelOpen && (
-                        <div style={{ height: `${outputHeight}px`, flexShrink: 0, position: 'relative' }}>
-                            <OutputPanel
-                                output={output}
-                                isRunning={isRunning}
-                                onClear={() => setOutput(null)}
-                            />
-
-                            {verificationResult && (
-                                <div style={{
-                                    position: 'absolute', bottom: 0, left: 0, right: 0,
-                                    background: '#09090b', borderTop: '1px solid rgba(255,255,255,0.1)',
-                                    padding: '14px 18px', maxHeight: '240px', overflowY: 'auto',
-                                    zIndex: 20, boxShadow: '0 -10px 25px rgba(0,0,0,0.8)'
-                                }}>
-                                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                                            {verificationResult.passed ? (
-                                                <CheckCircle2 size={18} style={{ color: '#4ade80' }} />
-                                            ) : (
-                                                <XCircle size={18} style={{ color: '#f87171' }} />
-                                            )}
-                                            <span style={{
-                                                fontSize: '13px', fontWeight: 800,
-                                                color: verificationResult.passed ? '#4ade80' : '#f87171',
-                                            }}>
-                                                {verificationResult.passed ? '✓ All Test Cases Passed!' : `${verificationResult.passed_tests}/${verificationResult.total_tests} Tests Passed`}
-                                            </span>
-                                            <span style={{
-                                                fontSize: '11px', fontWeight: 800,
-                                                padding: '3px 9px', borderRadius: '6px',
-                                                background: verificationResult.score >= 80 ? 'rgba(34,197,94,0.15)' : 'rgba(239,68,68,0.15)',
-                                                color: verificationResult.score >= 80 ? '#4ade80' : '#f87171',
-                                                border: `1px solid ${verificationResult.score >= 80 ? 'rgba(34,197,94,0.3)' : 'rgba(239,68,68,0.3)'}`
-                                            }}>Score: {verificationResult.score}%</span>
-                                        </div>
-                                        <button
-                                            onClick={() => setVerificationResult(null)}
-                                            style={{
-                                                background: 'transparent', border: '1px solid rgba(255,255,255,0.1)',
-                                                borderRadius: '6px', padding: '3px 8px',
-                                                color: '#71717a', fontSize: '9px', fontWeight: 700,
-                                                textTransform: 'uppercase', letterSpacing: '0.1em', cursor: 'pointer'
-                                            }}
-                                        >Dismiss</button>
-                                    </div>
-
-                                    {/* Test cases breakdown if returned */}
-                                    {verificationResult.test_results && verificationResult.test_results.length > 0 && (
-                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '12px' }}>
-                                            <div style={{ fontSize: '10px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.12em', color: '#a1a1aa' }}>
-                                                Test Cases Breakdown ({verificationResult.passed_tests}/{verificationResult.total_tests} Passed)
-                                            </div>
-                                            {verificationResult.test_results.map((tr, idx) => (
-                                                <div key={idx} style={{
-                                                    background: tr.passed ? 'rgba(34,197,94,0.06)' : 'rgba(239,68,68,0.06)',
-                                                    border: `1px solid ${tr.passed ? 'rgba(34,197,94,0.2)' : 'rgba(239,68,68,0.2)'}`,
-                                                    borderRadius: '8px', padding: '8px 12px', fontFamily: "'JetBrains Mono', monospace", fontSize: '11px'
-                                                }}>
-                                                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>
-                                                        <span style={{ fontWeight: 700, color: tr.passed ? '#4ade80' : '#f87171' }}>
-                                                            {tr.is_hidden ? (
-                                                                tr.passed ? `✓ Test Case ${idx + 1} (Hidden Case) Passed` : `✗ Test Case ${idx + 1} (Hidden Case) Failed`
-                                                            ) : (
-                                                                tr.passed ? `✓ Test Case ${idx + 1} Passed` : `✗ Test Case ${idx + 1} Failed`
-                                                            )}
-                                                        </span>
-                                                        {tr.is_hidden && (
-                                                            <span style={{ fontSize: '9px', fontWeight: 700, color: '#71717a', background: 'rgba(255,255,255,0.05)', padding: '1px 6px', borderRadius: '4px' }}>
-                                                                Hidden Edge Case
-                                                            </span>
-                                                        )}
-                                                    </div>
-                                                    {!tr.is_hidden ? (
-                                                        <>
-                                                            <div style={{ display: 'flex', gap: '8px', color: '#a1a1aa' }}>
-                                                                <span style={{ width: '75px', color: '#71717a', flexShrink: 0 }}>Input:</span>
-                                                                <span style={{ color: '#e4e4e7' }}>{tr.input_data}</span>
-                                                            </div>
-                                                            <div style={{ display: 'flex', gap: '8px', color: '#a1a1aa' }}>
-                                                                <span style={{ width: '75px', color: '#71717a', flexShrink: 0 }}>Expected:</span>
-                                                                <span style={{ color: '#c084fc' }}>{tr.expected}</span>
-                                                            </div>
-                                                            <div style={{ display: 'flex', gap: '8px', color: '#a1a1aa' }}>
-                                                                <span style={{ width: '75px', color: '#71717a', flexShrink: 0 }}>Your Output:</span>
-                                                                <span style={{ color: tr.passed ? '#4ade80' : '#f87171', fontWeight: 600 }}>{tr.actual}</span>
-                                                            </div>
-                                                        </>
-                                                    ) : (
-                                                        <div style={{ fontSize: '11px', color: '#71717a', fontStyle: 'italic' }}>
-                                                            {tr.passed ? 'Passed hidden edge assertions.' : 'Failed edge case requirements. Check your boundary logic.'}
-                                                        </div>
-                                                    )}
-                                                </div>
-                                            ))}
-                                        </div>
-                                    )}
-
-                                    {/* Feedback output */}
-                                    <pre style={{
-                                        fontSize: '11px', color: '#d4d4d8', lineHeight: '1.6',
-                                        margin: '0 0 8px 0', whiteSpace: 'pre-wrap', fontFamily: "'JetBrains Mono', monospace",
-                                        background: '#040404', padding: '10px 12px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.05)'
-                                    }}>{verificationResult.feedback}</pre>
-
-                                    {/* AI Review feedback if available */}
-                                    {verificationResult.ai_review && (
-                                        <div style={{
-                                            padding: '10px 12px', borderRadius: '8px',
-                                            background: 'rgba(167,139,250,0.06)',
-                                            border: '1px solid rgba(167,139,250,0.2)',
-                                        }}>
-                                            <div style={{
-                                                fontSize: '9px', fontWeight: 800, color: '#c084fc',
-                                                textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: '4px',
-                                            }}>AI Review & Suggestions</div>
-                                            <p style={{
-                                                fontSize: '11px', color: '#a1a1aa', lineHeight: '1.6', margin: 0,
-                                            }}>{verificationResult.ai_review}</p>
-                                        </div>
-                                    )}
-                                </div>
-                            )}
-                        </div>
-                    )}
-
-                    {/* Bottom Action Bar (Run + Submit & Verify) */}
-                    <div style={{
-                        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                        padding: '10px 16px', borderTop: '1px solid rgba(255,255,255,0.06)',
-                        background: '#060608', flexShrink: 0, gap: '12px'
-                    }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    {/* ── Bottom Action Bar ───────────────────── */}
+                    <div className="flex items-center justify-between px-4 py-2 border-t border-white/5" style={{ background: '#000', flexShrink: 0 }}>
+                        <div className="flex items-center gap-3">
                             <button
                                 onClick={handleRun}
                                 disabled={isRunning}
+                                className="flex items-center gap-2 px-5 py-2 rounded-full text-[10px] font-bold uppercase tracking-[0.08em] transition-all"
                                 style={{
-                                    display: 'flex', alignItems: 'center', gap: '6px',
-                                    padding: '7px 16px', borderRadius: '8px', cursor: isRunning ? 'wait' : 'pointer',
-                                    background: isRunning ? 'rgba(255,255,255,0.08)' : '#fff',
-                                    border: 'none', color: '#000',
-                                    fontSize: '10px', fontWeight: 800, textTransform: 'uppercase',
-                                    letterSpacing: '0.1em', transition: 'all 0.15s',
-                                    boxShadow: '0 0 15px rgba(255,255,255,0.2)'
+                                    background: isRunning ? 'rgba(255,255,255,0.05)' : 'rgba(255,255,255,0.08)',
+                                    color: '#fff', border: '1px solid rgba(255,255,255,0.12)',
+                                    cursor: isRunning ? 'wait' : 'pointer',
                                 }}
                             >
-                                {isRunning ? <Loader2 size={12} style={{ animation: 'spin 1s linear infinite' }} /> : <Play size={12} fill="currentColor" />}
-                                {isRunning ? 'Running...' : 'Run Code (Ctrl+Enter)'}
+                                {isRunning
+                                    ? <Loader2 size={11} style={{ animation: 'spin 1s linear infinite' }} />
+                                    : <Play size={11} fill="currentColor" />
+                                }
+                                {isRunning ? 'Running...' : 'Run'}
                             </button>
-
-                            <button
-                                onClick={() => setOutputPanelOpen(!outputPanelOpen)}
-                                style={{
-                                    display: 'flex', alignItems: 'center', gap: '4px',
-                                    background: 'transparent', border: 'none', cursor: 'pointer',
-                                    color: '#71717a', fontSize: '10px', fontWeight: 600, textTransform: 'uppercase'
-                                }}
-                            >
-                                <TerminalIcon size={11} /> {outputPanelOpen ? 'Hide Terminal' : 'Show Terminal'}
-                            </button>
+                            <span className="text-[8px] text-zinc-700 uppercase tracking-widest">Ctrl+Enter</span>
                         </div>
 
                         {activeTask && (
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                                <button
-                                    onClick={handleSubmit}
-                                    disabled={submitting}
-                                    style={{
-                                        display: 'flex', alignItems: 'center', gap: '8px',
-                                        padding: '8px 22px', borderRadius: '10px', cursor: submitting ? 'wait' : 'pointer',
-                                        background: submitting ? 'rgba(167,139,250,0.2)' : 'linear-gradient(135deg, #a855f7 0%, #6366f1 100%)',
-                                        border: 'none', color: '#fff',
-                                        fontSize: '11px', fontWeight: 800, textTransform: 'uppercase',
-                                        letterSpacing: '0.12em', transition: 'all 0.2s',
-                                        boxShadow: '0 0 20px rgba(168,85,247,0.35)'
-                                    }}
-                                >
-                                    {submitting ? <Loader2 size={13} style={{ animation: 'spin 1s linear infinite' }} /> : <Send size={13} />}
-                                    {submitting ? 'Verifying Tests...' : 'Submit & Verify'}
-                                </button>
-                            </div>
+                            <button
+                                onClick={handleSubmit}
+                                disabled={submitting}
+                                className="flex items-center gap-2 px-6 py-2 rounded-full text-[10px] font-bold uppercase tracking-[0.08em] transition-all shadow-lg"
+                                style={{
+                                    background: submitting ? 'rgba(34,197,94,0.15)' : 'linear-gradient(135deg, #22c55e, #16a34a)',
+                                    color: '#fff', border: 'none',
+                                    cursor: submitting ? 'wait' : 'pointer',
+                                    boxShadow: submitting ? 'none' : '0 0 25px rgba(34,197,94,0.25)',
+                                }}
+                            >
+                                {submitting
+                                    ? <Loader2 size={11} style={{ animation: 'spin 1s linear infinite' }} />
+                                    : <Send size={11} />
+                                }
+                                {submitting ? 'Judging...' : 'Submit'}
+                            </button>
                         )}
                     </div>
                 </div>

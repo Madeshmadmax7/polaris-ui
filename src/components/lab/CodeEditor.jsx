@@ -2,11 +2,12 @@
  * Polaris Lab — Monaco Code Editor Component
  * A premium dark-themed code editor with syntax highlighting, language selection,
  * and run capabilities. Wraps @monaco-editor/react.
+ * Supports: Python, C++, Java, JavaScript, HTML/CSS
  */
 
-import { useRef, useCallback } from 'react';
+import { useRef, useCallback, useState } from 'react';
 import Editor from '@monaco-editor/react';
-import { Play, Copy, Trash2, Download } from 'lucide-react';
+import { Play, Copy, Trash2, Download, ChevronDown } from 'lucide-react';
 
 const MONACO_THEME = {
     base: 'vs-dark',
@@ -46,8 +47,18 @@ const MONACO_THEME = {
 const LANGUAGE_MAP = {
     python: 'python',
     javascript: 'javascript',
+    cpp: 'cpp',
+    java: 'java',
     html: 'html',
     css: 'css',
+};
+
+const LANGUAGE_LABELS = {
+    python: { name: 'Python 3', color: '#3572A5' },
+    cpp: { name: 'C++ 17', color: '#f34b7d' },
+    java: { name: 'Java', color: '#b07219' },
+    javascript: { name: 'JavaScript', color: '#f1e05a' },
+    html: { name: 'HTML/CSS', color: '#e34c26' },
 };
 
 export default function CodeEditor({
@@ -55,10 +66,12 @@ export default function CodeEditor({
     language = 'python',
     onChange,
     onRun,
+    onLanguageChange,
     isRunning = false,
     readOnly = false,
 }) {
     const editorRef = useRef(null);
+    const [showLangMenu, setShowLangMenu] = useState(false);
 
     const handleEditorDidMount = useCallback((editor, monaco) => {
         editorRef.current = editor;
@@ -88,28 +101,84 @@ export default function CodeEditor({
     const handleDownload = useCallback(() => {
         if (!editorRef.current) return;
         const value = editorRef.current.getValue();
-        const ext = language === 'python' ? '.py' : language === 'javascript' ? '.js' : '.html';
+        const extMap = { python: '.py', javascript: '.js', cpp: '.cpp', java: '.java', html: '.html' };
+        const ext = extMap[language] || '.txt';
         const blob = new Blob([value], { type: 'text/plain' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = `polaris-lab${ext}`;
+        a.download = `solution${ext}`;
         a.click();
         URL.revokeObjectURL(url);
     }, [language]);
 
+    const langInfo = LANGUAGE_LABELS[language] || LANGUAGE_LABELS.python;
+
     return (
-        <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: '#0a0a0a', borderRadius: '16px', overflow: 'hidden', border: '1px solid rgba(255,255,255,0.05)' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: '#0a0a0a', overflow: 'hidden' }}>
             {/* Editor Toolbar */}
             <div style={{
                 display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                padding: '8px 12px', background: '#050505', borderBottom: '1px solid rgba(255,255,255,0.05)',
+                padding: '6px 12px', background: '#050505', borderBottom: '1px solid rgba(255,255,255,0.06)',
             }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: language === 'python' ? '#fbbf24' : language === 'javascript' ? '#fbbf24' : '#f472b6' }} />
-                    <span style={{ fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.15em', color: '#71717a', fontFamily: "'Outfit', sans-serif" }}>
-                        {language === 'python' ? 'Python 3' : language === 'javascript' ? 'JavaScript' : 'HTML/CSS'}
-                    </span>
+                {/* Language Selector */}
+                <div style={{ position: 'relative' }}>
+                    <button
+                        onClick={() => setShowLangMenu(!showLangMenu)}
+                        style={{
+                            display: 'flex', alignItems: 'center', gap: '6px',
+                            padding: '4px 10px', borderRadius: '6px', cursor: 'pointer',
+                            background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)',
+                            color: '#e4e4e7', fontSize: '11px', fontWeight: 600,
+                            fontFamily: "'Outfit', sans-serif", transition: 'all 0.15s',
+                        }}
+                    >
+                        <div style={{
+                            width: '8px', height: '8px', borderRadius: '50%',
+                            background: langInfo.color,
+                        }} />
+                        {langInfo.name}
+                        <ChevronDown size={11} style={{ color: '#71717a' }} />
+                    </button>
+
+                    {showLangMenu && (
+                        <>
+                            <div
+                                style={{ position: 'fixed', inset: 0, zIndex: 90 }}
+                                onClick={() => setShowLangMenu(false)}
+                            />
+                            <div style={{
+                                position: 'absolute', top: '100%', left: 0, marginTop: '4px',
+                                background: '#0d0d0d', border: '1px solid rgba(255,255,255,0.15)',
+                                borderRadius: '10px', padding: '4px', zIndex: 100,
+                                minWidth: '140px', boxShadow: '0 12px 40px rgba(0,0,0,0.8)',
+                            }}>
+                                {Object.entries(LANGUAGE_LABELS).map(([lang, info]) => (
+                                    <button
+                                        key={lang}
+                                        onClick={() => {
+                                            onLanguageChange?.(lang);
+                                            setShowLangMenu(false);
+                                        }}
+                                        style={{
+                                            width: '100%', display: 'flex', alignItems: 'center', gap: '8px',
+                                            padding: '7px 10px', background: lang === language ? 'rgba(255,255,255,0.1)' : 'transparent',
+                                            border: 'none', cursor: 'pointer', borderRadius: '6px',
+                                            transition: 'all 0.15s', color: lang === language ? '#fff' : '#a1a1aa',
+                                            textAlign: 'left',
+                                        }}
+                                        onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.08)'; }}
+                                        onMouseLeave={e => { e.currentTarget.style.background = lang === language ? 'rgba(255,255,255,0.1)' : 'transparent'; }}
+                                    >
+                                        <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: info.color }} />
+                                        <span style={{ fontSize: '11px', fontWeight: 500, fontFamily: "'Outfit', sans-serif" }}>
+                                            {info.name}
+                                        </span>
+                                    </button>
+                                ))}
+                            </div>
+                        </>
+                    )}
                 </div>
 
                 <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
@@ -117,59 +186,40 @@ export default function CodeEditor({
                         onClick={handleCopy}
                         title="Copy code"
                         style={{
-                            background: 'transparent', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '8px',
-                            padding: '5px 8px', cursor: 'pointer', color: '#71717a', display: 'flex', alignItems: 'center',
+                            background: 'transparent', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '6px',
+                            padding: '4px 7px', cursor: 'pointer', color: '#71717a', display: 'flex', alignItems: 'center',
                             transition: 'all 0.2s',
                         }}
                         onMouseEnter={e => { e.target.style.color = '#fff'; e.target.style.borderColor = 'rgba(255,255,255,0.2)'; }}
                         onMouseLeave={e => { e.target.style.color = '#71717a'; e.target.style.borderColor = 'rgba(255,255,255,0.05)'; }}
                     >
-                        <Copy size={12} />
+                        <Copy size={11} />
                     </button>
                     <button
                         onClick={handleDownload}
                         title="Download file"
                         style={{
-                            background: 'transparent', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '8px',
-                            padding: '5px 8px', cursor: 'pointer', color: '#71717a', display: 'flex', alignItems: 'center',
+                            background: 'transparent', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '6px',
+                            padding: '4px 7px', cursor: 'pointer', color: '#71717a', display: 'flex', alignItems: 'center',
                             transition: 'all 0.2s',
                         }}
                         onMouseEnter={e => { e.target.style.color = '#fff'; e.target.style.borderColor = 'rgba(255,255,255,0.2)'; }}
                         onMouseLeave={e => { e.target.style.color = '#71717a'; e.target.style.borderColor = 'rgba(255,255,255,0.05)'; }}
                     >
-                        <Download size={12} />
+                        <Download size={11} />
                     </button>
                     <button
                         onClick={handleClear}
                         title="Clear code"
                         style={{
-                            background: 'transparent', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '8px',
-                            padding: '5px 8px', cursor: 'pointer', color: '#71717a', display: 'flex', alignItems: 'center',
+                            background: 'transparent', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '6px',
+                            padding: '4px 7px', cursor: 'pointer', color: '#71717a', display: 'flex', alignItems: 'center',
                             transition: 'all 0.2s',
                         }}
                         onMouseEnter={e => { e.target.style.color = '#ef4444'; e.target.style.borderColor = 'rgba(239,68,68,0.3)'; }}
                         onMouseLeave={e => { e.target.style.color = '#71717a'; e.target.style.borderColor = 'rgba(255,255,255,0.05)'; }}
                     >
-                        <Trash2 size={12} />
-                    </button>
-                    <button
-                        onClick={onRun}
-                        disabled={isRunning}
-                        title="Run code (Ctrl+Enter)"
-                        style={{
-                            background: isRunning ? 'rgba(255,255,255,0.05)' : '#fff',
-                            color: isRunning ? '#71717a' : '#000',
-                            border: 'none', borderRadius: '8px',
-                            padding: '5px 14px', cursor: isRunning ? 'not-allowed' : 'pointer',
-                            display: 'flex', alignItems: 'center', gap: '6px',
-                            fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.15em',
-                            fontFamily: "'Outfit', sans-serif",
-                            transition: 'all 0.2s',
-                            opacity: isRunning ? 0.5 : 1,
-                        }}
-                    >
-                        <Play size={10} fill={isRunning ? '#71717a' : '#000'} />
-                        {isRunning ? 'Running...' : 'Run'}
+                        <Trash2 size={11} />
                     </button>
                 </div>
             </div>
@@ -184,7 +234,7 @@ export default function CodeEditor({
                     onMount={handleEditorDidMount}
                     theme="vs-dark"
                     options={{
-                        fontSize: 13,
+                        fontSize: 14,
                         fontFamily: "'JetBrains Mono', 'Fira Code', 'Cascadia Code', Consolas, monospace",
                         fontLigatures: true,
                         minimap: { enabled: false },
@@ -201,7 +251,7 @@ export default function CodeEditor({
                         guides: { bracketPairs: true },
                         wordWrap: 'on',
                         readOnly,
-                        tabSize: 4,
+                        tabSize: language === 'python' ? 4 : 4,
                         insertSpaces: true,
                         suggestOnTriggerCharacters: true,
                         quickSuggestions: true,

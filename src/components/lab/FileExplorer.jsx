@@ -4,12 +4,14 @@
  */
 
 import { useState } from 'react';
-import { Plus, X, FileCode, Code2, Globe } from 'lucide-react';
+import { Plus, X, FileCode, Code2, Globe, Cpu, Coffee } from 'lucide-react';
 
 const LANGUAGE_CONFIG = {
-    python: { label: 'Python', icon: FileCode, color: '#fbbf24', ext: '.py' },
-    javascript: { label: 'JavaScript', icon: Code2, color: '#fbbf24', ext: '.js' },
-    html: { label: 'HTML/CSS', icon: Globe, color: '#f472b6', ext: '.html' },
+    python: { label: 'Python 3', icon: FileCode, color: '#3572A5', ext: '.py' },
+    cpp: { label: 'C++ 17', icon: Cpu, color: '#f34b7d', ext: '.cpp' },
+    java: { label: 'Java', icon: Coffee, color: '#b07219', ext: '.java' },
+    javascript: { label: 'JavaScript', icon: Code2, color: '#f1e05a', ext: '.js' },
+    html: { label: 'HTML/CSS', icon: Globe, color: '#e34c26', ext: '.html' },
 };
 
 export default function FileExplorer({
@@ -111,7 +113,7 @@ export default function FileExplorer({
                             position: 'absolute', top: '100%', right: 0, marginTop: '6px',
                             background: '#0d0d0d', border: '1px solid rgba(255,255,255,0.15)',
                             borderRadius: '12px', padding: '4px', zIndex: 200,
-                            minWidth: '150px', boxShadow: '0 12px 40px rgba(0,0,0,0.8)',
+                            minWidth: '160px', boxShadow: '0 12px 40px rgba(0,0,0,0.8)',
                         }}>
                             {Object.entries(LANGUAGE_CONFIG).map(([lang, config]) => (
                                 <button
