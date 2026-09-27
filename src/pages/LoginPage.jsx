@@ -31,7 +31,7 @@ export default function LoginPage() {
     };
 
     return (
-        <div className="min-h-screen bg-black flex flex-col justify-center items-center px-6 py-12 font-outfit">
+        <div className="min-h-screen flex flex-col justify-center items-center px-6 py-12 font-outfit" style={{ background: 'var(--bg)' }}>
             <div className="max-w-md w-full animate-in fade-in slide-in-from-bottom-4 duration-700">
                 <div className="text-center mb-12">
                     <Link to="/" className="text-4xl font-light tracking-tighter mb-6 inline-block hover:opacity-80 transition-opacity text-white">

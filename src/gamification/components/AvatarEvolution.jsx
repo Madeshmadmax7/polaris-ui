@@ -16,7 +16,7 @@ import { Egg, Bug, CircleDot, Sparkles, Bird, ArrowUp } from 'lucide-react';
  */
 
 const STAGES = [
-    { id: 'egg', name: 'Egg', min: 0, max: 20, Icon: Egg, color: '#f5f5dc', particleIcon: Sparkles },
+    { id: 'egg', name: 'Egg', min: 0, max: 20, Icon: Egg, color: '#eab308', particleIcon: Sparkles },
     { id: 'caterpillar', name: 'Caterpillar', min: 21, max: 40, Icon: Bug, color: '#22c55e', particleIcon: Sparkles },
     { id: 'cocoon', name: 'Cocoon', min: 41, max: 60, Icon: CircleDot, color: '#a855f7', particleIcon: Sparkles },
     { id: 'emerging', name: 'Emerging', min: 61, max: 80, Icon: ArrowUp, color: '#3b82f6', particleIcon: Sparkles },
@@ -184,9 +184,9 @@ const styles = {
         alignItems: 'center',
         gap: '14px',
         padding: '16px',
-        background: 'rgba(255,255,255,0.02)',
+        background: 'var(--glass-bg)',
         borderRadius: '16px',
-        border: '1px solid rgba(255,255,255,0.12)',
+        border: '1px solid var(--border)',
     },
     avatarCircle: {
         width: '56px',
@@ -210,6 +210,7 @@ const styles = {
         textTransform: 'uppercase',
         letterSpacing: '0.15em',
         fontFamily: "'Outfit', sans-serif",
+        color: 'var(--text)',
     },
     progressRow: {
         display: 'flex',
@@ -223,7 +224,7 @@ const styles = {
     },
     percentage: {
         fontSize: '9px',
-        color: 'rgba(255,255,255,0.3)',
+        color: 'var(--text-dim)',
         fontFamily: "'Outfit', sans-serif",
     },
     // Overlay

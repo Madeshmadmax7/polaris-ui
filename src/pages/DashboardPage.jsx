@@ -245,14 +245,14 @@ export default function DashboardPage({ childId = null, childName = null, parent
                                         <YAxis domain={[0, 100]} tick={{ fontSize: 9, fontWeight: 500, fill: '#71717a' }} axisLine={false} tickLine={false} />
                                         <Tooltip
                                             contentStyle={{
-                                                background: '#000',
-                                                border: '1px solid rgba(255,255,255,0.1)',
+                                                background: 'var(--bg-card)',
+                                                border: '1px solid var(--border)',
                                                 borderRadius: '16px',
-                                                color: '#fff',
+                                                color: 'var(--text)',
                                                 padding: '12px'
                                             }}
-                                            itemStyle={{ color: '#fff', fontWeight: 500, textTransform: 'uppercase', fontSize: '10px' }}
-                                            labelStyle={{ color: '#71717a', fontWeight: 500, marginBottom: '6px', fontSize: '9px' }}
+                                            itemStyle={{ color: 'var(--text)', fontWeight: 500, textTransform: 'uppercase', fontSize: '10px' }}
+                                            labelStyle={{ color: 'var(--text-muted)', fontWeight: 500, marginBottom: '6px', fontSize: '9px' }}
                                         />
                                         <Area
                                             type="monotone"

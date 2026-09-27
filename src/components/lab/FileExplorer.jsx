@@ -27,8 +27,8 @@ export default function FileExplorer({
     return (
         <div style={{
             display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-            padding: '4px 8px', background: '#030303',
-            borderBottom: '1px solid rgba(255,255,255,0.05)',
+            padding: '4px 8px', background: 'var(--bg-card)',
+            borderBottom: '1px solid var(--border)',
             position: 'relative', zIndex: 100,
         }}>
             {/* Scrollable File Tabs */}
@@ -48,8 +48,8 @@ export default function FileExplorer({
                             style={{
                                 display: 'flex', alignItems: 'center', gap: '6px',
                                 padding: '6px 12px', borderRadius: '8px', cursor: 'pointer',
-                                background: isActive ? 'rgba(255,255,255,0.08)' : 'transparent',
-                                border: `1px solid ${isActive ? 'rgba(255,255,255,0.1)' : 'transparent'}`,
+                                background: isActive ? 'var(--bg-hover)' : 'transparent',
+                                border: `1px solid ${isActive ? 'var(--border)' : 'transparent'}`,
                                 transition: 'all 0.15s', whiteSpace: 'nowrap', flexShrink: 0,
                             }}
                         >
@@ -59,7 +59,7 @@ export default function FileExplorer({
                             }} />
                             <span style={{
                                 fontSize: '10px', fontWeight: isActive ? 600 : 400,
-                                color: isActive ? '#e4e4e7' : '#71717a',
+                                color: isActive ? 'var(--text)' : 'var(--text-muted)',
                                 fontFamily: "'Outfit', sans-serif",
                                 letterSpacing: '0.05em',
                             }}>
@@ -72,11 +72,11 @@ export default function FileExplorer({
                                     style={{
                                         background: 'transparent', border: 'none',
                                         padding: '1px', cursor: 'pointer',
-                                        color: '#3f3f46', display: 'flex', alignItems: 'center',
+                                        color: 'var(--text-dim)', display: 'flex', alignItems: 'center',
                                         transition: 'all 0.15s', borderRadius: '4px',
                                     }}
                                     onMouseEnter={e => { e.target.style.color = '#ef4444'; }}
-                                    onMouseLeave={e => { e.target.style.color = '#3f3f46'; }}
+                                    onMouseLeave={e => { e.target.style.color = 'var(--text-dim)'; }}
                                 >
                                     <X size={10} />
                                 </button>
@@ -91,13 +91,13 @@ export default function FileExplorer({
                 <button
                     onClick={() => setShowNewMenu(!showNewMenu)}
                     style={{
-                        background: 'transparent', border: '1px solid rgba(255,255,255,0.05)',
+                        background: 'transparent', border: '1px solid var(--border)',
                         borderRadius: '8px', padding: '5px 8px', cursor: 'pointer',
-                        color: '#3f3f46', display: 'flex', alignItems: 'center',
+                        color: 'var(--text-muted)', display: 'flex', alignItems: 'center',
                         transition: 'all 0.2s',
                     }}
-                    onMouseEnter={e => { e.currentTarget.style.color = '#71717a'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.15)'; }}
-                    onMouseLeave={e => { e.currentTarget.style.color = '#3f3f46'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.05)'; }}
+                    onMouseEnter={e => { e.currentTarget.style.color = 'var(--text)'; e.currentTarget.style.borderColor = 'var(--text-muted)'; }}
+                    onMouseLeave={e => { e.currentTarget.style.color = 'var(--text-muted)'; e.currentTarget.style.borderColor = 'var(--border)'; }}
                 >
                     <Plus size={12} />
                 </button>
@@ -111,9 +111,9 @@ export default function FileExplorer({
                         />
                         <div style={{
                             position: 'absolute', top: '100%', right: 0, marginTop: '6px',
-                            background: '#0d0d0d', border: '1px solid rgba(255,255,255,0.15)',
+                            background: 'var(--bg-card)', border: '1px solid var(--border)',
                             borderRadius: '12px', padding: '4px', zIndex: 200,
-                            minWidth: '160px', boxShadow: '0 12px 40px rgba(0,0,0,0.8)',
+                            minWidth: '160px', boxShadow: '0 12px 40px rgba(0,0,0,0.2)',
                         }}>
                             {Object.entries(LANGUAGE_CONFIG).map(([lang, config]) => (
                                 <button
@@ -123,10 +123,10 @@ export default function FileExplorer({
                                         width: '100%', display: 'flex', alignItems: 'center', gap: '8px',
                                         padding: '8px 12px', background: 'transparent', border: 'none',
                                         cursor: 'pointer', borderRadius: '8px', transition: 'all 0.15s',
-                                        color: '#a1a1aa', textAlign: 'left',
+                                        color: 'var(--text-muted)', textAlign: 'left',
                                     }}
-                                    onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.08)'; e.currentTarget.style.color = '#fff'; }}
-                                    onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#a1a1aa'; }}
+                                    onMouseEnter={e => { e.currentTarget.style.background = 'var(--bg-hover)'; e.currentTarget.style.color = 'var(--text)'; }}
+                                    onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--text-muted)'; }}
                                 >
                                     <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: config.color }} />
                                     <span style={{

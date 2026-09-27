@@ -158,24 +158,25 @@ export default function ProductivityPage() {
                         <div className="h-[400px]">
                             <ResponsiveContainer width="100%" height="100%">
                                 <LineChart data={scores}>
-                                    <CartesianGrid strokeDasharray="6 6" vertical={false} stroke="rgba(255,255,255,0.03)" />
-                                    <XAxis dataKey="date" tick={{ fontSize: 9, fontWeight: 700, fill: '#52525b' }} axisLine={false} tickLine={false} dy={10} />
-                                    <YAxis yAxisId="score" domain={[0, 100]} tick={{ fontSize: 9, fontWeight: 700, fill: '#52525b' }} axisLine={false} tickLine={false} dx={-10} />
+                                    <CartesianGrid strokeDasharray="6 6" vertical={false} stroke="var(--border)" />
+                                    <XAxis dataKey="date" tick={{ fontSize: 9, fontWeight: 700, fill: 'var(--text-dim)' }} axisLine={false} tickLine={false} dy={10} />
+                                    <YAxis yAxisId="score" domain={[0, 100]} tick={{ fontSize: 9, fontWeight: 700, fill: 'var(--text-dim)' }} axisLine={false} tickLine={false} dx={-10} />
                                     <YAxis yAxisId="focus" orientation="right" domain={[0, 1]} hide />
                                     <Tooltip
                                         contentStyle={{
-                                            background: '#000',
-                                            border: '1px solid rgba(255,255,255,0.1)',
+                                            background: 'var(--bg-card)',
+                                            border: '1px solid var(--border)',
                                             borderRadius: '24px',
                                             padding: '20px',
-                                            boxShadow: '0 30px 60px rgba(0,0,0,0.5)'
+                                            boxShadow: '0 20px 40px rgba(0,0,0,0.15)',
+                                            color: 'var(--text)'
                                         }}
-                                        itemStyle={{ textTransform: 'uppercase', fontSize: '9px', fontWeight: 700, letterSpacing: '0.1em' }}
-                                        labelStyle={{ color: '#52525b', fontWeight: 700, marginBottom: '8px', fontSize: '9px', textTransform: 'uppercase' }}
-                                        cursor={{ stroke: 'rgba(255,255,255,0.1)', strokeWidth: 1 }}
+                                        itemStyle={{ color: 'var(--text)', textTransform: 'uppercase', fontSize: '9px', fontWeight: 700, letterSpacing: '0.1em' }}
+                                        labelStyle={{ color: 'var(--text-muted)', fontWeight: 700, marginBottom: '8px', fontSize: '9px', textTransform: 'uppercase' }}
+                                        cursor={{ stroke: 'var(--border)', strokeWidth: 1 }}
                                     />
                                     <Legend 
-                                        wrapperStyle={{ paddingTop: '30px', fontSize: '9px', textTransform: 'uppercase', fontWeight: 700, letterSpacing: '0.2em', color: '#52525b' }} 
+                                        wrapperStyle={{ paddingTop: '30px', fontSize: '9px', textTransform: 'uppercase', fontWeight: 700, letterSpacing: '0.2em', color: 'var(--text-muted)' }} 
                                         iconType="circle"
                                         align="left"
                                     />
@@ -183,22 +184,22 @@ export default function ProductivityPage() {
                                         yAxisId="score"
                                         type="monotone"
                                         dataKey="productivity_score"
-                                        stroke="#fff"
+                                        stroke="var(--text)"
                                         name="Efficiency Index"
                                         strokeWidth={3}
                                         dot={{ r: 0 }}
-                                        activeDot={{ r: 6, fill: '#fff', stroke: '#000', strokeWidth: 2 }}
+                                        activeDot={{ r: 6, fill: 'var(--text)', stroke: 'var(--bg)', strokeWidth: 2 }}
                                     />
                                     <Line
                                         yAxisId="focus"
                                         type="monotone"
                                         dataKey="focus_factor"
-                                        stroke="rgba(255,255,255,0.15)"
+                                        stroke="var(--text-dim)"
                                         name="Focus Resonance"
                                         strokeWidth={2}
                                         strokeDasharray="8 8"
                                         dot={{ r: 0 }}
-                                        activeDot={{ r: 5, fill: 'rgba(255,255,255,0.2)', stroke: '#000', strokeWidth: 2 }}
+                                        activeDot={{ r: 5, fill: 'var(--text-dim)', stroke: 'var(--bg)', strokeWidth: 2 }}
                                     />
                                 </LineChart>
                             </ResponsiveContainer>
@@ -221,18 +222,18 @@ export default function ProductivityPage() {
                         <div className="h-[400px]">
                             <ResponsiveContainer width="100%" height="100%">
                                 <BarChart data={scores.slice(-7)} layout="vertical">
-                                    <CartesianGrid strokeDasharray="6 6" horizontal={false} stroke="rgba(255,255,255,0.03)" />
+                                    <CartesianGrid strokeDasharray="6 6" horizontal={false} stroke="var(--border)" />
                                     <XAxis type="number" hide />
-                                    <YAxis dataKey="date" type="category" tick={{ fontSize: 9, fontWeight: 700, fill: '#52525b' }} axisLine={false} tickLine={false} />
+                                    <YAxis dataKey="date" type="category" tick={{ fontSize: 9, fontWeight: 700, fill: 'var(--text-dim)' }} axisLine={false} tickLine={false} />
                                     <Tooltip
-                                        cursor={{ fill: 'rgba(255,255,255,0.02)' }}
-                                        contentStyle={{ background: '#000', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '16px', color: '#fff' }}
+                                        cursor={{ fill: 'var(--glass-bg)' }}
+                                        contentStyle={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: '16px', color: 'var(--text)' }}
                                         formatter={(v) => [`${Math.round(v)} min`, '']}
                                     />
-                                    <Bar dataKey="productive_minutes" name="Efficient" stackId="a" fill="#fff" radius={[0, 0, 0, 0]} />
-                                    <Bar dataKey="neutral_minutes" name="Baseline" stackId="a" fill="#3f3f46" />
-                                    <Bar dataKey="distracting_minutes" name="Leakage" stackId="a" fill="#18181b" radius={[0, 4, 4, 0]} />
-                                </BarChart>
+                                    <Bar dataKey="productive_minutes" name="Efficient" stackId="a" fill="var(--text)" radius={[0, 0, 0, 0]} />
+                                    <Bar dataKey="neutral_minutes" name="Baseline" stackId="a" fill="var(--text-dim)" />
+                                    <Bar dataKey="distracting_minutes" name="Leakage" stackId="a" fill="var(--border)" radius={[0, 4, 4, 0]} />
+                                 </BarChart>
                             </ResponsiveContainer>
                         </div>
                     ) : null}
@@ -247,9 +248,9 @@ export default function ProductivityPage() {
                         <p className="text-zinc-600 text-[10px] font-bold uppercase tracking-[0.4em]">Mass distribution across active cycles</p>
                     </div>
                     <div className="flex flex-wrap gap-8 bg-black/40 px-10 py-6 rounded-full border border-white/5">
-                        <LegendItem color="bg-white" label="Efficient" />
-                        <LegendItem color="bg-zinc-600" label="Baseline" />
-                        <LegendItem color="bg-zinc-800" label="Leakage" />
+                        <LegendItem color="bg-zinc-900 dark:bg-white" label="Efficient" />
+                        <LegendItem color="bg-zinc-400 dark:bg-zinc-600" label="Baseline" />
+                        <LegendItem color="bg-zinc-200 dark:bg-zinc-800" label="Leakage" />
                     </div>
                 </div>
 
@@ -257,18 +258,18 @@ export default function ProductivityPage() {
                     <div className="h-[400px]">
                         <ResponsiveContainer width="100%" height="100%">
                             <BarChart data={scores}>
-                                <CartesianGrid strokeDasharray="8 8" vertical={false} stroke="rgba(255,255,255,0.03)" />
-                                <XAxis dataKey="date" tick={{ fontSize: 9, fontWeight: 700, fill: '#52525b' }} axisLine={false} tickLine={false} dy={10} />
-                                <YAxis tick={{ fontSize: 9, fontWeight: 700, fill: '#52525b' }} axisLine={false} tickLine={false} dx={-10} />
+                                <CartesianGrid strokeDasharray="8 8" vertical={false} stroke="var(--border)" />
+                                <XAxis dataKey="date" tick={{ fontSize: 9, fontWeight: 700, fill: 'var(--text-dim)' }} axisLine={false} tickLine={false} dy={10} />
+                                <YAxis tick={{ fontSize: 9, fontWeight: 700, fill: 'var(--text-dim)' }} axisLine={false} tickLine={false} dx={-10} />
                                 <Tooltip
-                                    cursor={{ fill: 'rgba(255,255,255,0.02)' }}
-                                    contentStyle={{ background: '#000', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '24px', color: '#fff', padding: '16px' }}
-                                    itemStyle={{ color: '#fff', fontWeight: 700, fontSize: '9px', textTransform: 'uppercase', letterSpacing: '0.1em' }}
+                                    cursor={{ fill: 'var(--glass-bg)' }}
+                                    contentStyle={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: '24px', color: 'var(--text)', padding: '16px' }}
+                                    itemStyle={{ color: 'var(--text)', fontWeight: 700, fontSize: '9px', textTransform: 'uppercase', letterSpacing: '0.1em' }}
                                     formatter={(v) => [`${Math.round(v)} MINS`, '']}
                                 />
-                                <Bar dataKey="productive_minutes" stackId="a" fill="#fff" radius={[0, 0, 0, 0]} />
-                                <Bar dataKey="neutral_minutes" stackId="a" fill="#3f3f46" />
-                                <Bar dataKey="distracting_minutes" stackId="a" fill="#18181b" radius={[4, 4, 0, 0]} />
+                                <Bar dataKey="productive_minutes" stackId="a" fill="var(--text)" radius={[0, 0, 0, 0]} />
+                                <Bar dataKey="neutral_minutes" stackId="a" fill="var(--text-dim)" />
+                                <Bar dataKey="distracting_minutes" stackId="a" fill="var(--border)" radius={[4, 4, 0, 0]} />
                             </BarChart>
                         </ResponsiveContainer>
                     </div>

@@ -996,22 +996,22 @@ export default function LearningPage() {
 
                     {/* Fullscreen Quiz Interface */}
                     {showQuiz && !quizResult && (
-                        <div className="fixed inset-0 z-[200] bg-black flex flex-col overflow-y-auto animate-in fade-in zoom-in duration-300 font-outfit">
+                        <div className="fixed inset-0 z-[200] flex flex-col overflow-y-auto animate-in fade-in zoom-in duration-300 font-outfit" style={{ background: 'var(--bg)', color: 'var(--text)' }}>
                             {/* Security Alert */}
-                            <div className="bg-white/5 backdrop-blur-md border-b border-white/5 px-8 py-3 flex items-center justify-center gap-4">
-                                <AlertTriangle size={14} className="text-white animate-pulse" />
-                                <span className="text-[10px] font-bold uppercase tracking-[0.3em] text-white">Integrity Guard Active — Maintain Fullscreen Mode</span>
+                            <div className="backdrop-blur-md border-b px-8 py-3 flex items-center justify-center gap-4" style={{ background: 'var(--glass-bg)', borderColor: 'var(--border)' }}>
+                                <AlertTriangle size={14} className="text-amber-500 animate-pulse" />
+                                <span className="text-[10px] font-bold uppercase tracking-[0.3em]" style={{ color: 'var(--text-muted)' }}>Integrity Guard Active — Maintain Fullscreen Mode</span>
                             </div>
 
                             <div className="container mx-auto max-w-3xl px-6 py-24 flex-1">
-                                <div className="mb-20 flex items-center justify-between border-b border-white/10 pb-10">
+                                <div className="mb-20 flex items-center justify-between border-b pb-10" style={{ borderColor: 'var(--border)' }}>
                                     <div>
-                                        <h1 className="text-3xl font-light text-white tracking-tight mb-2">Knowledge <span className="font-semibold">Validation</span></h1>
-                                        <p className="text-zinc-600 font-bold uppercase tracking-widest text-[10px]">Assessment Sequence v4.0</p>
+                                        <h1 className="text-3xl font-light tracking-tight mb-2" style={{ color: 'var(--text)' }}>Knowledge <span className="font-semibold">Validation</span></h1>
+                                        <p className="font-bold uppercase tracking-widest text-[10px]" style={{ color: 'var(--text-dim)' }}>Assessment Sequence v4.0</p>
                                     </div>
                                     <div className="text-right">
-                                        <div className="text-4xl font-light text-white tabular-nums">{Object.keys(quizAnswers).length}/{quiz.length}</div>
-                                        <div className="text-[10px] font-bold uppercase tracking-widest text-zinc-600 mt-1">Completion Vector</div>
+                                        <div className="text-4xl font-light tabular-nums" style={{ color: 'var(--text)' }}>{Object.keys(quizAnswers).length}/{quiz.length}</div>
+                                        <div className="text-[10px] font-bold uppercase tracking-widest mt-1" style={{ color: 'var(--text-dim)' }}>Completion Vector</div>
                                     </div>
                                 </div>
 
@@ -1019,8 +1019,8 @@ export default function LearningPage() {
                                     {quiz.map((question, qIdx) => (
                                         <div key={qIdx} className="space-y-8">
                                             <div className="flex gap-8">
-                                                <span className="text-5xl font-light text-white/5 select-none tabular-nums">{(qIdx + 1).toString().padStart(2, '0')}</span>
-                                                <h3 className="text-xl font-medium text-white leading-relaxed pt-2">
+                                                <span className="text-5xl font-light select-none tabular-nums" style={{ color: 'var(--text-dim)', opacity: 0.35 }}>{(qIdx + 1).toString().padStart(2, '0')}</span>
+                                                <h3 className="text-xl font-medium leading-relaxed pt-2" style={{ color: 'var(--text)' }}>
                                                     {question.question}
                                                 </h3>
                                             </div>
@@ -1029,10 +1029,12 @@ export default function LearningPage() {
                                                 {question.options.map((option, oIdx) => (
                                                     <label
                                                         key={oIdx}
-                                                        className={`group relative flex items-center p-5 rounded-2xl border transition-all cursor-pointer ${quizAnswers[qIdx] === oIdx
-                                                            ? 'bg-white text-black border-white shadow-3xl'
-                                                            : 'bg-white/5 text-zinc-500 border-white/5 hover:border-white/20 hover:text-white'
-                                                            }`}
+                                                        className="group relative flex items-center p-5 rounded-2xl border transition-all cursor-pointer shadow-sm"
+                                                        style={{
+                                                            background: quizAnswers[qIdx] === oIdx ? 'var(--text)' : 'var(--glass-bg)',
+                                                            color: quizAnswers[qIdx] === oIdx ? 'var(--bg)' : 'var(--text)',
+                                                            borderColor: quizAnswers[qIdx] === oIdx ? 'var(--text)' : 'var(--border)',
+                                                        }}
                                                     >
                                                         <input
                                                             type="radio"
@@ -1041,9 +1043,14 @@ export default function LearningPage() {
                                                             onChange={() => handleQuizAnswer(qIdx, oIdx)}
                                                             className="sr-only"
                                                         />
-                                                        <div className={`w-5 h-5 rounded-full border-2 mr-4 flex items-center justify-center transition-all ${quizAnswers[qIdx] === oIdx ? 'bg-white border-white' : 'border-zinc-200 group-hover:border-black'
-                                                            }`}>
-                                                            {quizAnswers[qIdx] === oIdx && <div className="w-2 h-2 bg-black rounded-full" />}
+                                                        <div
+                                                            className="w-5 h-5 rounded-full border-2 mr-4 flex items-center justify-center transition-all shrink-0"
+                                                            style={{
+                                                                borderColor: quizAnswers[qIdx] === oIdx ? 'var(--bg)' : 'var(--text-dim)',
+                                                                background: quizAnswers[qIdx] === oIdx ? 'var(--bg)' : 'transparent',
+                                                            }}
+                                                        >
+                                                            {quizAnswers[qIdx] === oIdx && <div className="w-2.5 h-2.5 rounded-full" style={{ background: 'var(--text)' }} />}
                                                         </div>
                                                         <span className="text-sm font-bold tracking-tight">{option}</span>
                                                     </label>
@@ -1055,18 +1062,19 @@ export default function LearningPage() {
 
                                 <button
                                     onClick={handleSubmitQuiz}
-                                    className="mt-20 w-full bg-black text-white py-6 rounded-3xl font-black uppercase tracking-[0.3em] text-xs hover:scale-[1.02] active:scale-[0.98] transition-all shadow-2xl flex items-center justify-center gap-4 disabled:bg-zinc-800 disabled:opacity-50"
+                                    className="mt-20 w-full py-6 rounded-3xl font-black uppercase tracking-[0.3em] text-xs hover:scale-[1.01] active:scale-[0.98] transition-all shadow-2xl flex items-center justify-center gap-4 disabled:opacity-40 cursor-pointer"
+                                    style={{ background: 'var(--text)', color: 'var(--bg)' }}
                                     disabled={submittingQuiz || !!quizCooldown}
                                 >
                                     {submittingQuiz ? <RefreshCw size={24} className="animate-spin" /> : <Brain size={24} />}
                                     {submittingQuiz ? 'Analysing Response Patterns...' : 'Submit Certification Data'}
                                 </button>
                                 {quizCooldown && (
-                                    <div className="mt-4 p-5 bg-zinc-900 border border-white/10 rounded-2xl text-center">
-                                        <p className="text-white font-bold text-sm mb-1">
+                                    <div className="mt-4 p-5 rounded-2xl text-center border" style={{ background: 'var(--glass-bg)', borderColor: 'var(--border)' }}>
+                                        <p className="font-bold text-sm mb-1" style={{ color: 'var(--text)' }}>
                                             {quizCooldown.attempts_used}/{quizCooldown.max_retakes} attempts used
                                         </p>
-                                        <p className="text-zinc-500 text-xs">
+                                        <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
                                             Cooldown active — retry in {quizCooldown.hours}h {quizCooldown.minutes}m
                                         </p>
                                     </div>
@@ -1078,30 +1086,31 @@ export default function LearningPage() {
                     {/* Quiz Results Scorecard */}
                     {quizResult && (
                         <div className="mt-12 space-y-12 animate-in scroll-mt-20 overflow-hidden" id="quiz-results">
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-0 border border-white/10 rounded-[64px] overflow-hidden bg-zinc-900 shadow-3xl">
-                                <div className="bg-white text-black p-16 flex flex-col items-center justify-center text-center">
-                                    <div className="text-7xl font-light mb-4 tracking-tighter">
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-0 border rounded-[64px] overflow-hidden shadow-3xl" style={{ borderColor: 'var(--border)', background: 'var(--bg-card)' }}>
+                                <div className="p-16 flex flex-col items-center justify-center text-center" style={{ background: 'var(--bg-hover)', color: 'var(--text)' }}>
+                                    <div className="text-7xl font-light mb-4 tracking-tighter" style={{ color: 'var(--text)' }}>
                                         {quizResult.score.toFixed(0)}<span className="text-3xl font-medium">%</span>
                                     </div>
-                                    <div className="text-[10px] font-bold uppercase tracking-[0.4em] text-zinc-400 mb-10">Neural Quotient</div>
-                                    <div className={`px-8 py-3 rounded-full text-[9px] font-bold uppercase tracking-widest border ${quizResult.score >= 70 ? 'bg-black text-white border-black' : 'bg-zinc-100 text-zinc-400 border-transparent'
-                                        }`}>
+                                    <div className="text-[10px] font-bold uppercase tracking-[0.4em] mb-10" style={{ color: 'var(--text-muted)' }}>Neural Quotient</div>
+                                    <div className={`px-8 py-3 rounded-full text-[9px] font-bold uppercase tracking-widest border ${
+                                        quizResult.score >= 70 ? 'bg-emerald-500 text-white border-emerald-500' : 'bg-rose-500/10 text-rose-500 border-rose-500/30'
+                                    }`}>
                                         {quizResult.score >= 70 ? 'Certification Granted' : 'Retake Required'}
                                     </div>
                                 </div>
-                                <div className="md:col-span-2 p-16 flex flex-col justify-center bg-black/40">
+                                <div className="md:col-span-2 p-16 flex flex-col justify-center" style={{ background: 'var(--glass-bg)' }}>
                                     {quizResult.terminated && (
-                                        <div className="flex items-start gap-4 p-6 bg-white/5 border border-dashed border-white/10 rounded-3xl mb-8">
-                                            <AlertTriangle className="text-white shrink-0" size={20} />
+                                        <div className="flex items-start gap-4 p-6 bg-amber-500/10 border border-dashed border-amber-500/30 rounded-3xl mb-8">
+                                            <AlertTriangle className="text-amber-500 shrink-0" size={20} />
                                             <div>
-                                                <h4 className="text-[10px] font-bold uppercase tracking-widest text-white mb-2">Integrity Breach Detected</h4>
-                                                <p className="text-xs text-zinc-500 font-medium leading-relaxed">{quizResult.termination_reason}</p>
+                                                <h4 className="text-[10px] font-bold uppercase tracking-widest text-amber-600 dark:text-amber-400 mb-2">Integrity Breach Detected</h4>
+                                                <p className="text-xs font-medium leading-relaxed" style={{ color: 'var(--text-muted)' }}>{quizResult.termination_reason}</p>
                                             </div>
                                         </div>
                                     )}
-                                    <h3 className="text-2xl font-semibold text-white mb-4 tracking-tight">Assessment Analysis</h3>
-                                    <p className="text-zinc-500 text-[14px] font-light leading-relaxed tracking-wide">
-                                        You correctly identified <span className="text-white font-medium underline underline-offset-4">{quizResult.correct_answers} out of {quizResult.total_questions}</span> key concepts.
+                                    <h3 className="text-2xl font-semibold mb-4 tracking-tight" style={{ color: 'var(--text)' }}>Assessment Analysis</h3>
+                                    <p className="text-[14px] font-light leading-relaxed tracking-wide" style={{ color: 'var(--text-muted)' }}>
+                                        You correctly identified <span className="font-semibold underline underline-offset-4" style={{ color: 'var(--text)' }}>{quizResult.correct_answers} out of {quizResult.total_questions}</span> key concepts.
                                         {quizResult.score >= 70
                                             ? " Optimal cognitive retention achieved. Knowledge integration successful."
                                             : " Baseline proficiency threshold not met. Theoretical reinforcement recommended."}
@@ -1110,7 +1119,7 @@ export default function LearningPage() {
                             </div>
 
                             <div className="space-y-8">
-                                <h3 className="text-[10px] font-bold uppercase tracking-[0.5em] text-zinc-700 flex items-center gap-3 px-4 mb-2">
+                                <h3 className="text-[10px] font-bold uppercase tracking-[0.5em] flex items-center gap-3 px-4 mb-2" style={{ color: 'var(--text-dim)' }}>
                                     <MessageSquare size={14} /> Item Response Analysis
                                 </h3>
 
@@ -1118,39 +1127,43 @@ export default function LearningPage() {
                                     {quizResult.results.map((result, idx) => (
                                         <div
                                             key={idx}
-                                            className={`p-10 rounded-[48px] border transition-all ${result.correct ? 'bg-white/5 border-white/5' : 'bg-zinc-900 border-white/10 hover:border-white/20'
-                                                }`}
+                                            className="p-10 rounded-[48px] border transition-all"
+                                            style={{
+                                                background: 'var(--bg-card)',
+                                                borderColor: result.correct ? 'rgba(16, 185, 129, 0.25)' : 'var(--border)',
+                                            }}
                                         >
                                             <div className="flex flex-col md:flex-row gap-10">
-                                                <div className={`w-16 h-16 rounded-[24px] flex items-center justify-center shrink-0 border transition-all ${result.correct ? 'bg-white text-black border-white' : 'bg-black text-white border-white/10'
-                                                    }`}>
+                                                <div className={`w-16 h-16 rounded-[24px] flex items-center justify-center shrink-0 border transition-all ${
+                                                    result.correct ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/30' : 'bg-rose-500/10 text-rose-500 border-rose-500/30'
+                                                }`}>
                                                     {result.correct ? <Check size={28} strokeWidth={3} /> : <X size={28} strokeWidth={3} />}
                                                 </div>
                                                 <div className="flex-1 space-y-6">
                                                     <div>
-                                                        <div className="text-[9px] font-bold uppercase tracking-[0.3em] text-zinc-500 mb-3">Objective {(idx + 1).toString().padStart(2, '0')}</div>
-                                                        <h4 className="text-xl font-medium text-white tracking-tight leading-relaxed">
+                                                        <div className="text-[9px] font-bold uppercase tracking-[0.3em] mb-3" style={{ color: 'var(--text-dim)' }}>Objective {(idx + 1).toString().padStart(2, '0')}</div>
+                                                        <h4 className="text-xl font-medium tracking-tight leading-relaxed" style={{ color: 'var(--text)' }}>
                                                             {quiz[result.question_number]?.question}
                                                         </h4>
                                                     </div>
 
                                                     {!result.correct && (
                                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                                            <div className="p-6 bg-black/40 rounded-3xl border border-white/5">
-                                                                <div className="text-[9px] font-bold uppercase tracking-widest text-zinc-700 mb-2">Your Output</div>
-                                                                <div className="text-sm font-medium text-zinc-500 italic">"{quiz[result.question_number]?.options[result.user_answer]}"</div>
+                                                            <div className="p-6 rounded-3xl border" style={{ background: 'var(--glass-bg)', borderColor: 'var(--border)' }}>
+                                                                <div className="text-[9px] font-bold uppercase tracking-widest mb-2" style={{ color: 'var(--text-dim)' }}>Your Output</div>
+                                                                <div className="text-sm font-medium italic" style={{ color: 'var(--text-muted)' }}>"{quiz[result.question_number]?.options[result.user_answer]}"</div>
                                                             </div>
-                                                            <div className="p-6 bg-white text-black rounded-3xl">
-                                                                <div className="text-[9px] font-bold uppercase tracking-widest text-zinc-400 mb-2">Verified Key</div>
+                                                            <div className="p-6 rounded-3xl border border-emerald-500/30 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
+                                                                <div className="text-[9px] font-bold uppercase tracking-widest text-emerald-700 dark:text-emerald-300 mb-2">Verified Key</div>
                                                                 <div className="text-sm font-bold">"{quiz[result.question_number]?.options[result.correct_answer]}"</div>
                                                             </div>
                                                         </div>
                                                     )}
 
                                                     {result.explanation && (
-                                                        <div className="p-8 bg-black/20 border border-white/5 rounded-3xl flex gap-6 group/expl">
-                                                            <Lightbulb className="text-zinc-700 group-hover:text-white transition-colors shrink-0" size={20} />
-                                                            <p className="text-[13px] font-light text-zinc-500 leading-relaxed italic">
+                                                        <div className="p-8 rounded-3xl flex gap-6 group/expl border" style={{ background: 'var(--glass-bg)', borderColor: 'var(--border)' }}>
+                                                            <Lightbulb className="text-amber-500 shrink-0" size={20} />
+                                                            <p className="text-[13px] font-light leading-relaxed italic" style={{ color: 'var(--text-muted)' }}>
                                                                 {result.explanation}
                                                             </p>
                                                         </div>
@@ -1168,7 +1181,8 @@ export default function LearningPage() {
                                     setQuizResult(null);
                                     setQuizAnswers({});
                                 }}
-                                className="w-full py-6 bg-white text-black rounded-full text-[10px] font-bold uppercase tracking-[0.4em] hover:opacity-90 transition-all shadow-3xl"
+                                className="w-full py-6 rounded-full text-[10px] font-bold uppercase tracking-[0.4em] transition-all shadow-3xl cursor-pointer"
+                                style={{ background: 'var(--text)', color: 'var(--bg)' }}
                             >
                                 Revert to Training Environment
                             </button>
@@ -1185,50 +1199,50 @@ export default function LearningPage() {
         ============================================================ */}
         {postQuizModal && (
             <div className="fixed inset-0 z-[600] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
-                <div className="bg-gray-900 border border-white/10 rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
+                <div className="border rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto" style={{ background: 'var(--bg-card)', borderColor: 'var(--border)', color: 'var(--text)' }}>
 
                     {/* Score header */}
-                    <div className="p-6 text-center border-b border-white/10">
-                        <p className="text-xs text-white/40 uppercase tracking-widest mb-2">Quiz Complete</p>
+                    <div className="p-6 text-center border-b" style={{ borderColor: 'var(--border)' }}>
+                        <p className="text-xs uppercase tracking-widest mb-2" style={{ color: 'var(--text-dim)' }}>Quiz Complete</p>
                         <p className={`text-7xl font-black mb-1 ${
-                            postQuizModal.score >= 75 ? 'text-green-400'
-                            : postQuizModal.score >= 50 ? 'text-yellow-400'
-                            : 'text-red-400'
+                            postQuizModal.score >= 75 ? 'text-emerald-500'
+                            : postQuizModal.score >= 50 ? 'text-amber-500'
+                            : 'text-rose-500'
                         }`}>
                             {Math.round(postQuizModal.score)}%
                         </p>
-                        <p className="text-white/50 text-sm">{postQuizModal.correct} / {postQuizModal.total} correct</p>
+                        <p className="text-sm" style={{ color: 'var(--text-muted)' }}>{postQuizModal.correct} / {postQuizModal.total} correct</p>
                     </div>
 
                     <div className="p-6 space-y-5">
                         {agentAnalysis === 'loading' ? (
                             <div className="flex flex-col items-center gap-3 py-8">
-                                <div className="w-8 h-8 border-2 border-white/20 border-t-white rounded-full animate-spin" />
-                                <p className="text-white/40 text-sm">AI is analyzing your answers…</p>
+                                <div className="w-8 h-8 border-2 border-t-transparent rounded-full animate-spin" style={{ borderColor: 'var(--text)', borderTopColor: 'transparent' }} />
+                                <p className="text-sm" style={{ color: 'var(--text-muted)' }}>AI is analyzing your answers…</p>
                             </div>
                         ) : agentAnalysis ? (
                             <>
                                 {/* AI reasoning */}
                                 <div>
-                                    <p className="text-xs text-white/40 uppercase tracking-widest mb-2">AI Analysis</p>
-                                    <p className="text-white/80 text-sm leading-relaxed">{agentAnalysis.reasoning}</p>
+                                    <p className="text-xs uppercase tracking-widest mb-2" style={{ color: 'var(--text-dim)' }}>AI Analysis</p>
+                                    <p className="text-sm leading-relaxed" style={{ color: 'var(--text)' }}>{agentAnalysis.reasoning}</p>
                                 </div>
 
                                 {/* Weak topic pills */}
                                 {agentAnalysis.weak_topics?.length > 0 && (
                                     <div>
-                                        <p className="text-xs text-white/40 uppercase tracking-widest mb-2">Weak Topics Identified</p>
+                                        <p className="text-xs uppercase tracking-widest mb-2" style={{ color: 'var(--text-dim)' }}>Weak Topics Identified</p>
                                         <div className="flex flex-wrap gap-2">
                                             {agentAnalysis.weak_topics.map((t, i) => (
-                                                <span key={i} className="px-3 py-1 rounded-full bg-red-500/20 border border-red-500/40 text-red-300 text-xs font-medium">{t}</span>
+                                                <span key={i} className="px-3 py-1 rounded-full bg-rose-500/15 border border-rose-500/30 text-rose-600 dark:text-rose-300 text-xs font-medium">{t}</span>
                                             ))}
                                         </div>
                                     </div>
                                 )}
 
                                 {/* Agent message */}
-                                <div className="bg-white/5 border border-white/10 rounded-xl p-4">
-                                    <p className="text-white/80 text-sm italic">“{agentAnalysis.agent_message}”</p>
+                                <div className="border rounded-xl p-4" style={{ background: 'var(--glass-bg)', borderColor: 'var(--border)' }}>
+                                    <p className="text-sm italic" style={{ color: 'var(--text)' }}>“{agentAnalysis.agent_message}”</p>
                                 </div>
 
                                 {!showContinueForm ? (
@@ -1237,13 +1251,15 @@ export default function LearningPage() {
                                             <>
                                                 <button
                                                     onClick={() => setShowContinueForm(true)}
-                                                    className="flex-1 py-3 bg-white text-black rounded-full text-xs font-bold uppercase tracking-widest hover:opacity-90 transition-all"
+                                                    className="flex-1 py-3 rounded-full text-xs font-bold uppercase tracking-widest transition-all cursor-pointer"
+                                                    style={{ background: 'var(--text)', color: 'var(--bg)' }}
                                                 >
                                                     Continue &amp; Revise
                                                 </button>
                                                 <button
                                                     onClick={handleDiscontinue}
-                                                    className="flex-1 py-3 bg-white/10 text-white/60 rounded-full text-xs font-bold uppercase tracking-widest hover:bg-white/15 transition-all"
+                                                    className="flex-1 py-3 rounded-full text-xs font-bold uppercase tracking-widest transition-all border cursor-pointer"
+                                                    style={{ background: 'var(--bg-hover)', color: 'var(--text)', borderColor: 'var(--border)' }}
                                                 >
                                                     I’m Done
                                                 </button>
@@ -1251,7 +1267,8 @@ export default function LearningPage() {
                                         ) : (
                                             <button
                                                 onClick={handleDiscontinue}
-                                                className="w-full py-3 bg-white text-black rounded-full text-xs font-bold uppercase tracking-widest hover:opacity-90 transition-all"
+                                                className="w-full py-3 rounded-full text-xs font-bold uppercase tracking-widest transition-all cursor-pointer"
+                                                style={{ background: 'var(--text)', color: 'var(--bg)' }}
                                             >
                                                 Close
                                             </button>
@@ -1260,28 +1277,30 @@ export default function LearningPage() {
                                 ) : (
                                     // Editable override form — user adjusts before any change is applied
                                     <div className="space-y-4 pt-2">
-                                        <p className="text-xs text-white/40 uppercase tracking-widest">Review &amp; Adjust Before Regenerating</p>
+                                        <p className="text-xs uppercase tracking-widest" style={{ color: 'var(--text-dim)' }}>Review &amp; Adjust Before Regenerating</p>
                                         <div className="grid grid-cols-2 gap-4">
                                             <div>
-                                                <label className="block text-xs text-white/50 mb-1">Total Days</label>
+                                                <label className="block text-xs mb-1" style={{ color: 'var(--text-muted)' }}>Total Days</label>
                                                 <input
                                                     type="number"
                                                     min={1}
                                                     max={365}
                                                     value={continueParams.days}
                                                     onChange={e => setContinueParams(p => ({ ...p, days: parseInt(e.target.value) || 1 }))}
-                                                    className="w-full bg-white/10 border border-white/20 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-white/50"
+                                                    className="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none"
+                                                    style={{ background: 'var(--bg-hover)', borderColor: 'var(--border)', color: 'var(--text)' }}
                                                 />
                                                 {agentAnalysis.recommended_extra_days > 0 && (
-                                                    <p className="text-xs text-yellow-400/70 mt-1">AI suggests +{agentAnalysis.recommended_extra_days} extra days</p>
+                                                    <p className="text-xs text-amber-500 mt-1">AI suggests +{agentAnalysis.recommended_extra_days} extra days</p>
                                                 )}
                                             </div>
                                             <div>
-                                                <label className="block text-xs text-white/50 mb-1">Difficulty</label>
+                                                <label className="block text-xs mb-1" style={{ color: 'var(--text-muted)' }}>Difficulty</label>
                                                 <select
                                                     value={continueParams.difficulty}
                                                     onChange={e => setContinueParams(p => ({ ...p, difficulty: e.target.value }))}
-                                                    className="w-full bg-white/10 border border-white/20 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-white/50"
+                                                    className="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none"
+                                                    style={{ background: 'var(--bg-hover)', borderColor: 'var(--border)', color: 'var(--text)' }}
                                                 >
                                                     <option value="easy">Easy</option>
                                                     <option value="medium">Medium</option>
@@ -1293,19 +1312,21 @@ export default function LearningPage() {
                                             <button
                                                 onClick={handleConfirmRegenerate}
                                                 disabled={regenerating}
-                                                className="flex-1 py-3 bg-white text-black rounded-full text-xs font-bold uppercase tracking-widest hover:opacity-90 transition-all disabled:opacity-50"
+                                                className="flex-1 py-3 rounded-full text-xs font-bold uppercase tracking-widest transition-all disabled:opacity-50 cursor-pointer"
+                                                style={{ background: 'var(--text)', color: 'var(--bg)' }}
                                             >
                                                 {regenerating ? 'Regenerating…' : 'Confirm & Regenerate'}
                                             </button>
                                             <button
                                                 onClick={() => setShowContinueForm(false)}
                                                 disabled={regenerating}
-                                                className="flex-1 py-3 bg-white/10 text-white/60 rounded-full text-xs font-bold uppercase tracking-widest hover:bg-white/15 transition-all disabled:opacity-50"
+                                                className="flex-1 py-3 rounded-full text-xs font-bold uppercase tracking-widest transition-all disabled:opacity-50 border cursor-pointer"
+                                                style={{ background: 'var(--bg-hover)', color: 'var(--text)', borderColor: 'var(--border)' }}
                                             >
                                                 Back
                                             </button>
                                         </div>
-                                        <p className="text-xs text-white/25 text-center">Nothing changes until you click “Confirm &amp; Regenerate”</p>
+                                        <p className="text-xs text-center" style={{ color: 'var(--text-dim)' }}>Nothing changes until you click “Confirm &amp; Regenerate”</p>
                                     </div>
                                 )}
                             </>

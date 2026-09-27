@@ -46,7 +46,7 @@ const FeaturesPage = () => {
     ];
 
     return (
-        <div className="bg-black min-h-screen pt-24 pb-24 selection:bg-white selection:text-black font-outfit">
+        <div className="min-h-screen pt-24 pb-24 selection:bg-white selection:text-black font-outfit" style={{ background: 'var(--bg)' }}>
             <div className="container mx-auto px-6 max-w-7xl">
                 <div className="text-center max-w-2xl mx-auto mb-20 animate-in fade-in slide-in-from-bottom-4 duration-700">
                     <div className="inline-block px-4 py-1.5 border border-white/10 rounded-full mb-6 text-[9px] font-bold uppercase tracking-[0.4em] text-zinc-500">

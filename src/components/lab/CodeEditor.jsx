@@ -128,8 +128,8 @@ export default function CodeEditor({
                         style={{
                             display: 'flex', alignItems: 'center', gap: '6px',
                             padding: '4px 10px', borderRadius: '6px', cursor: 'pointer',
-                            background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)',
-                            color: '#e4e4e7', fontSize: '11px', fontWeight: 600,
+                            background: 'var(--glass-bg)', border: '1px solid var(--border)',
+                            color: 'var(--text)', fontSize: '11px', fontWeight: 600,
                             fontFamily: "'Outfit', sans-serif", transition: 'all 0.15s',
                         }}
                     >
@@ -138,7 +138,7 @@ export default function CodeEditor({
                             background: langInfo.color,
                         }} />
                         {langInfo.name}
-                        <ChevronDown size={11} style={{ color: '#71717a' }} />
+                        <ChevronDown size={11} style={{ color: 'var(--text-muted)' }} />
                     </button>
 
                     {showLangMenu && (
@@ -149,9 +149,9 @@ export default function CodeEditor({
                             />
                             <div style={{
                                 position: 'absolute', top: '100%', left: 0, marginTop: '4px',
-                                background: '#0d0d0d', border: '1px solid rgba(255,255,255,0.15)',
+                                background: 'var(--bg-card)', border: '1px solid var(--border)',
                                 borderRadius: '10px', padding: '4px', zIndex: 100,
-                                minWidth: '140px', boxShadow: '0 12px 40px rgba(0,0,0,0.8)',
+                                minWidth: '140px', boxShadow: '0 12px 40px rgba(0,0,0,0.25)',
                             }}>
                                 {Object.entries(LANGUAGE_LABELS).map(([lang, info]) => (
                                     <button
@@ -162,13 +162,13 @@ export default function CodeEditor({
                                         }}
                                         style={{
                                             width: '100%', display: 'flex', alignItems: 'center', gap: '8px',
-                                            padding: '7px 10px', background: lang === language ? 'rgba(255,255,255,0.1)' : 'transparent',
+                                            padding: '7px 10px', background: lang === language ? 'var(--bg-hover)' : 'transparent',
                                             border: 'none', cursor: 'pointer', borderRadius: '6px',
-                                            transition: 'all 0.15s', color: lang === language ? '#fff' : '#a1a1aa',
+                                            transition: 'all 0.15s', color: lang === language ? 'var(--text)' : 'var(--text-muted)',
                                             textAlign: 'left',
                                         }}
-                                        onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.08)'; }}
-                                        onMouseLeave={e => { e.currentTarget.style.background = lang === language ? 'rgba(255,255,255,0.1)' : 'transparent'; }}
+                                        onMouseEnter={e => { e.currentTarget.style.background = 'var(--bg-hover)'; }}
+                                        onMouseLeave={e => { e.currentTarget.style.background = lang === language ? 'var(--bg-hover)' : 'transparent'; }}
                                     >
                                         <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: info.color }} />
                                         <span style={{ fontSize: '11px', fontWeight: 500, fontFamily: "'Outfit', sans-serif" }}>
@@ -186,12 +186,12 @@ export default function CodeEditor({
                         onClick={handleCopy}
                         title="Copy code"
                         style={{
-                            background: 'transparent', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '6px',
-                            padding: '4px 7px', cursor: 'pointer', color: '#71717a', display: 'flex', alignItems: 'center',
+                            background: 'transparent', border: '1px solid var(--border)', borderRadius: '6px',
+                            padding: '4px 7px', cursor: 'pointer', color: 'var(--text-muted)', display: 'flex', alignItems: 'center',
                             transition: 'all 0.2s',
                         }}
-                        onMouseEnter={e => { e.target.style.color = '#fff'; e.target.style.borderColor = 'rgba(255,255,255,0.2)'; }}
-                        onMouseLeave={e => { e.target.style.color = '#71717a'; e.target.style.borderColor = 'rgba(255,255,255,0.05)'; }}
+                        onMouseEnter={e => { e.currentTarget.style.color = 'var(--text)'; e.currentTarget.style.borderColor = 'var(--text-muted)'; }}
+                        onMouseLeave={e => { e.currentTarget.style.color = 'var(--text-muted)'; e.currentTarget.style.borderColor = 'var(--border)'; }}
                     >
                         <Copy size={11} />
                     </button>
@@ -199,12 +199,12 @@ export default function CodeEditor({
                         onClick={handleDownload}
                         title="Download file"
                         style={{
-                            background: 'transparent', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '6px',
-                            padding: '4px 7px', cursor: 'pointer', color: '#71717a', display: 'flex', alignItems: 'center',
+                            background: 'transparent', border: '1px solid var(--border)', borderRadius: '6px',
+                            padding: '4px 7px', cursor: 'pointer', color: 'var(--text-muted)', display: 'flex', alignItems: 'center',
                             transition: 'all 0.2s',
                         }}
-                        onMouseEnter={e => { e.target.style.color = '#fff'; e.target.style.borderColor = 'rgba(255,255,255,0.2)'; }}
-                        onMouseLeave={e => { e.target.style.color = '#71717a'; e.target.style.borderColor = 'rgba(255,255,255,0.05)'; }}
+                        onMouseEnter={e => { e.currentTarget.style.color = 'var(--text)'; e.currentTarget.style.borderColor = 'var(--text-muted)'; }}
+                        onMouseLeave={e => { e.currentTarget.style.color = 'var(--text-muted)'; e.currentTarget.style.borderColor = 'var(--border)'; }}
                     >
                         <Download size={11} />
                     </button>
@@ -212,12 +212,12 @@ export default function CodeEditor({
                         onClick={handleClear}
                         title="Clear code"
                         style={{
-                            background: 'transparent', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '6px',
-                            padding: '4px 7px', cursor: 'pointer', color: '#71717a', display: 'flex', alignItems: 'center',
+                            background: 'transparent', border: '1px solid var(--border)', borderRadius: '6px',
+                            padding: '4px 7px', cursor: 'pointer', color: 'var(--text-muted)', display: 'flex', alignItems: 'center',
                             transition: 'all 0.2s',
                         }}
-                        onMouseEnter={e => { e.target.style.color = '#ef4444'; e.target.style.borderColor = 'rgba(239,68,68,0.3)'; }}
-                        onMouseLeave={e => { e.target.style.color = '#71717a'; e.target.style.borderColor = 'rgba(255,255,255,0.05)'; }}
+                        onMouseEnter={e => { e.currentTarget.style.color = '#ef4444'; e.currentTarget.style.borderColor = 'rgba(239,68,68,0.3)'; }}
+                        onMouseLeave={e => { e.currentTarget.style.color = 'var(--text-muted)'; e.currentTarget.style.borderColor = 'var(--border)'; }}
                     >
                         <Trash2 size={11} />
                     </button>

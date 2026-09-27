@@ -380,14 +380,14 @@ function LabContent({ planId, chapterNum, searchParams }) {
         <div className="font-outfit" style={{
             display: 'flex', flexDirection: 'column',
             height: 'calc(100vh - 56px)',
-            background: '#000', color: '#fff', overflow: 'hidden',
+            background: 'var(--bg)', color: 'var(--text)', overflow: 'hidden',
         }}>
             {/* ── Top Bar ──────────────────────────────────────── */}
             <div style={{
                 display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                 padding: '10px 20px',
                 borderBottom: '1px solid rgba(255,255,255,0.05)',
-                background: '#000', flexShrink: 0,
+                background: 'var(--bg)', flexShrink: 0,
             }}>
                 {/* Left: Back + Title */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
@@ -648,7 +648,7 @@ function LabContent({ planId, chapterNum, searchParams }) {
                         width: '4px', cursor: 'col-resize', background: 'transparent',
                         transition: 'background 0.15s', flexShrink: 0,
                     }}
-                    onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.15)'; }}
+                    onMouseEnter={e => { e.currentTarget.style.background = 'rgba(128,128,128,0.3)'; }}
                     onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
                 />
 
@@ -664,8 +664,8 @@ function LabContent({ planId, chapterNum, searchParams }) {
                                         onRun={handleRun} onLanguageChange={handleLanguageChange} isRunning={isRunning}
                                     />
                                 </div>
-                                <div style={{ flex: 1, minWidth: 0, borderLeft: '1px solid rgba(255,255,255,0.05)' }}>
-                                    <div className="px-3 py-1.5 bg-black border-b border-white/5 text-[9px] font-bold uppercase tracking-[0.15em] text-zinc-600">
+                                <div style={{ flex: 1, minWidth: 0, borderLeft: '1px solid var(--border)' }}>
+                                    <div className="px-3 py-1.5 bg-zinc-900 border-b border-white/5 text-[9px] font-bold uppercase tracking-[0.15em] text-zinc-600">
                                         Live Preview
                                     </div>
                                     <iframe ref={iframeRef} srcDoc={htmlPreview} title="HTML Preview"
@@ -685,9 +685,9 @@ function LabContent({ planId, chapterNum, searchParams }) {
                     {/* Vertical Resize Handle */}
                     <div
                         onMouseDown={handleVerticalResize}
-                        style={{ height: '4px', cursor: 'row-resize', background: 'rgba(255,255,255,0.02)', borderTop: '1px solid rgba(255,255,255,0.05)', flexShrink: 0 }}
-                        onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.1)'; }}
-                        onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.02)'; }}
+                        style={{ height: '4px', cursor: 'row-resize', background: 'var(--border-light)', borderTop: '1px solid var(--border)', flexShrink: 0 }}
+                        onMouseEnter={e => { e.currentTarget.style.background = 'rgba(128,128,128,0.3)'; }}
+                        onMouseLeave={e => { e.currentTarget.style.background = 'var(--border-light)'; }}
                     />
 
                     {/* Output Panel */}

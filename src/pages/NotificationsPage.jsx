@@ -64,7 +64,7 @@ export default function NotificationsPage() {
     const unreadCount = notificationList.filter(n => !n.is_read).length;
 
     return (
-        <div className="min-h-screen bg-black text-white pt-20 pb-12">
+        <div className="min-h-screen pt-20 pb-12" style={{ background: 'var(--bg)', color: 'var(--text)' }}>
             <div className="max-w-2xl mx-auto px-4">
                 {/* Header */}
                 <div className="mb-6">

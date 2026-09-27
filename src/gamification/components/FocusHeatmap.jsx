@@ -13,7 +13,7 @@ const DAY_LABELS = ['Mon', '', 'Wed', '', 'Fri', '', 'Sun'];
 const MONTH_NAMES = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
 function getColor(minutes) {
-    if (!minutes || minutes === 0) return 'rgba(255,255,255,0.04)';
+    if (!minutes || minutes === 0) return 'var(--border)';
     if (minutes <= 10) return '#064e3b';
     if (minutes <= 60) return '#059669';
     return '#34d399';
@@ -237,7 +237,7 @@ function FocusHeatmapInner() {
             {/* Legend */}
             <div style={styles.legend}>
                 <span style={styles.legendLabel}>Less</span>
-                {['rgba(255,255,255,0.04)', '#064e3b', '#059669', '#34d399'].map((c, i) => (
+                {['var(--border)', '#064e3b', '#059669', '#34d399'].map((c, i) => (
                     <div key={i} style={{ ...styles.legendCell, background: c }} />
                 ))}
                 <span style={styles.legendLabel}>More</span>
@@ -259,9 +259,9 @@ export default FocusHeatmap;
 const styles = {
     container: {
         padding: '24px',
-        background: 'rgba(255,255,255,0.02)',
+        background: 'var(--glass-bg)',
         borderRadius: '20px',
-        border: '1px solid rgba(255,255,255,0.12)',
+        border: '1px solid var(--border)',
     },
     header: {
         display: 'flex',
@@ -272,20 +272,20 @@ const styles = {
         gap: '12px',
     },
     title: {
-        margin: 0, fontSize: '14px', fontWeight: 700, color: '#fff',
+        margin: 0, fontSize: '14px', fontWeight: 700, color: 'var(--text)',
         textTransform: 'uppercase', letterSpacing: '0.15em',
         fontFamily: "'Outfit', sans-serif",
     },
     statsRow: { display: 'flex', gap: '20px' },
     stat: { display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '3px' },
-    statValue: { fontSize: '16px', fontWeight: 800, color: '#34d399', fontFamily: "'Outfit', sans-serif" },
-    statLabel: { fontSize: '8px', color: 'rgba(255,255,255,0.3)', textTransform: 'uppercase', letterSpacing: '0.1em', fontFamily: "'Outfit', sans-serif" },
+    statValue: { fontSize: '16px', fontWeight: 800, color: '#10b981', fontFamily: "'Outfit', sans-serif" },
+    statLabel: { fontSize: '8px', color: 'var(--text-dim)', textTransform: 'uppercase', letterSpacing: '0.1em', fontFamily: "'Outfit', sans-serif" },
     monthRow: { display: 'flex', marginBottom: '4px' },
     monthLabelsContainer: { position: 'relative', flex: 1, height: '18px' },
-    monthLabel: { position: 'absolute', top: 0, fontSize: '9px', color: 'rgba(255,255,255,0.3)', fontFamily: "'Outfit', sans-serif", fontWeight: 600 },
+    monthLabel: { position: 'absolute', top: 0, fontSize: '9px', color: 'var(--text-dim)', fontFamily: "'Outfit', sans-serif", fontWeight: 600 },
     heatmapWrapper: { display: 'flex', gap: '4px' },
     dayLabels: { display: 'flex', flexDirection: 'column', gap: '3px', flexShrink: 0 },
-    dayLabel: { fontSize: '9px', color: 'rgba(255,255,255,0.2)', height: '14px', display: 'flex', alignItems: 'center', fontFamily: "'Outfit', sans-serif", width: '28px' },
+    dayLabel: { fontSize: '9px', color: 'var(--text-dim)', height: '14px', display: 'flex', alignItems: 'center', fontFamily: "'Outfit', sans-serif", width: '28px' },
     grid: {
         display: 'grid',
         gridTemplateColumns: `repeat(${WEEKS_TO_SHOW}, 1fr)`,
@@ -298,12 +298,12 @@ const styles = {
         transition: 'all 0.15s ease', minHeight: '14px',
     },
     legend: { display: 'flex', alignItems: 'center', gap: '4px', marginTop: '16px', justifyContent: 'flex-end' },
-    legendLabel: { fontSize: '9px', color: 'rgba(255,255,255,0.25)', fontFamily: "'Outfit', sans-serif", margin: '0 4px' },
+    legendLabel: { fontSize: '9px', color: 'var(--text-dim)', fontFamily: "'Outfit', sans-serif", margin: '0 4px' },
     legendCell: { width: '12px', height: '12px', borderRadius: '3px' },
     emptyState: {
         marginTop: '16px', padding: '16px', textAlign: 'center', fontSize: '11px',
-        color: 'rgba(255,255,255,0.25)', fontFamily: "'Outfit', sans-serif",
-        background: 'rgba(255,255,255,0.02)', borderRadius: '12px',
-        border: '1px solid rgba(255,255,255,0.06)',
+        color: 'var(--text-muted)', fontFamily: "'Outfit', sans-serif",
+        background: 'var(--glass-bg)', borderRadius: '12px',
+        border: '1px solid var(--border)',
     },
 };

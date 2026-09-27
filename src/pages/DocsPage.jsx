@@ -76,7 +76,7 @@ const DocsPage = () => {
     ];
 
     return (
-        <div className="bg-black min-h-screen pt-24 pb-32 selection:bg-white selection:text-black font-outfit">
+        <div className="min-h-screen pt-24 pb-32 selection:bg-white selection:text-black font-outfit" style={{ background: 'var(--bg)' }}>
             <div className="container mx-auto px-6 max-w-5xl">
 
                 {/* Header */}
@@ -96,8 +96,8 @@ const DocsPage = () => {
                 {/* Download Card */}
                 <div className="mb-24 animate-in fade-in slide-in-from-bottom-6 duration-900">
                     <div style={{
-                        background: 'linear-gradient(135deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.01) 100%)',
-                        border: '1px solid rgba(255,255,255,0.08)',
+                        background: 'var(--bg-card)',
+                        border: '1px solid var(--border)',
                         borderRadius: '32px',
                         padding: '48px',
                         textAlign: 'center',
@@ -112,7 +112,7 @@ const DocsPage = () => {
                             transform: 'translateX(-50%)',
                             width: '300px',
                             height: '300px',
-                            background: 'radial-gradient(circle, rgba(255,255,255,0.03) 0%, transparent 70%)',
+                            background: 'radial-gradient(circle, var(--glass-bg) 0%, transparent 70%)',
                             pointerEvents: 'none',
                         }} />
 
@@ -121,20 +121,20 @@ const DocsPage = () => {
                                 width: '64px',
                                 height: '64px',
                                 borderRadius: '20px',
-                                background: 'rgba(255,255,255,0.05)',
-                                border: '1px solid rgba(255,255,255,0.1)',
+                                background: 'var(--glass-bg)',
+                                border: '1px solid var(--border)',
                                 display: 'flex',
                                 alignItems: 'center',
-                                justifyContent: 'center',
+                                justifyCenter: 'center',
                                 margin: '0 auto 24px',
                             }}>
-                                <Chrome size={28} style={{ color: 'white' }} />
+                                <Chrome size={28} style={{ color: 'var(--text)', margin: 'auto' }} />
                             </div>
 
                             <h2 style={{
                                 fontSize: '22px',
                                 fontWeight: 500,
-                                color: 'white',
+                                color: 'var(--text)',
                                 marginBottom: '8px',
                                 letterSpacing: '-0.02em',
                             }}>
@@ -142,7 +142,7 @@ const DocsPage = () => {
                             </h2>
                             <p style={{
                                 fontSize: '13px',
-                                color: 'rgba(255,255,255,0.35)',
+                                color: 'var(--text-muted)',
                                 marginBottom: '28px',
                                 fontWeight: 300,
                                 letterSpacing: '0.03em',
@@ -159,8 +159,8 @@ const DocsPage = () => {
                                     display: 'inline-flex',
                                     alignItems: 'center',
                                     gap: '10px',
-                                    background: 'white',
-                                    color: 'black',
+                                    background: 'var(--text)',
+                                    color: 'var(--bg)',
                                     padding: '14px 36px',
                                     borderRadius: '100px',
                                     fontSize: '11px',
@@ -171,8 +171,8 @@ const DocsPage = () => {
                                     transition: 'all 0.3s',
                                     cursor: 'pointer',
                                 }}
-                                onMouseEnter={(e) => { e.target.style.opacity = '0.85'; e.target.style.transform = 'scale(1.02)'; }}
-                                onMouseLeave={(e) => { e.target.style.opacity = '1'; e.target.style.transform = 'scale(1)'; }}
+                                onMouseEnter={(e) => { e.currentTarget.style.opacity = '0.85'; e.currentTarget.style.transform = 'scale(1.02)'; }}
+                                onMouseLeave={(e) => { e.currentTarget.style.opacity = '1'; e.currentTarget.style.transform = 'scale(1)'; }}
                             >
                                 <Download size={16} />
                                 Download Extension
@@ -180,7 +180,7 @@ const DocsPage = () => {
 
                             <p style={{
                                 fontSize: '10px',
-                                color: 'rgba(255,255,255,0.2)',
+                                color: 'var(--text-dim)',
                                 marginTop: '16px',
                                 fontWeight: 500,
                                 textTransform: 'uppercase',
@@ -200,7 +200,7 @@ const DocsPage = () => {
                             fontWeight: 700,
                             textTransform: 'uppercase',
                             letterSpacing: '0.6em',
-                            color: 'rgba(255,255,255,0.25)',
+                            color: 'var(--text-dim)',
                             marginBottom: '16px',
                         }}>
                             Installation Sequence
@@ -208,7 +208,7 @@ const DocsPage = () => {
                         <h3 style={{
                             fontSize: '32px',
                             fontWeight: 300,
-                            color: 'white',
+                            color: 'var(--text)',
                             letterSpacing: '-0.02em',
                         }}>
                             Setup in <span style={{ fontWeight: 600 }}>6 Steps</span>
@@ -225,21 +225,21 @@ const DocsPage = () => {
                                     gap: '24px',
                                     padding: '28px 32px',
                                     background: step.highlight
-                                        ? 'linear-gradient(135deg, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0.02) 100%)'
-                                        : 'rgba(255,255,255,0.02)',
-                                    border: `1px solid rgba(255,255,255,${step.highlight ? '0.1' : '0.05'})`,
+                                        ? 'var(--bg-hover)'
+                                        : 'var(--bg-card)',
+                                    border: '1px solid var(--border)',
                                     borderRadius: '24px',
                                     transition: 'all 0.3s',
                                 }}
                                 onMouseEnter={(e) => {
-                                    e.currentTarget.style.borderColor = 'rgba(255,255,255,0.15)';
-                                    e.currentTarget.style.background = 'rgba(255,255,255,0.04)';
+                                    e.currentTarget.style.borderColor = 'var(--text-muted)';
+                                    e.currentTarget.style.background = 'var(--bg-hover)';
                                 }}
                                 onMouseLeave={(e) => {
-                                    e.currentTarget.style.borderColor = `rgba(255,255,255,${step.highlight ? '0.1' : '0.05'})`;
+                                    e.currentTarget.style.borderColor = 'var(--border)';
                                     e.currentTarget.style.background = step.highlight
-                                        ? 'linear-gradient(135deg, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0.02) 100%)'
-                                        : 'rgba(255,255,255,0.02)';
+                                        ? 'var(--bg-hover)'
+                                        : 'var(--bg-card)';
                                 }}
                             >
                                 {/* Step Number */}
@@ -248,12 +248,12 @@ const DocsPage = () => {
                                     width: '44px',
                                     height: '44px',
                                     borderRadius: '14px',
-                                    background: 'rgba(255,255,255,0.05)',
-                                    border: '1px solid rgba(255,255,255,0.08)',
+                                    background: 'var(--glass-bg)',
+                                    border: '1px solid var(--border)',
                                     display: 'flex',
                                     alignItems: 'center',
                                     justifyContent: 'center',
-                                    color: 'rgba(255,255,255,0.5)',
+                                    color: 'var(--text)',
                                 }}>
                                     {step.icon}
                                 </div>
@@ -263,7 +263,7 @@ const DocsPage = () => {
                                         <span style={{
                                             fontSize: '9px',
                                             fontWeight: 700,
-                                            color: 'rgba(255,255,255,0.2)',
+                                            color: 'var(--text-dim)',
                                             textTransform: 'uppercase',
                                             letterSpacing: '0.3em',
                                         }}>
@@ -273,7 +273,7 @@ const DocsPage = () => {
                                     <h4 style={{
                                         fontSize: '16px',
                                         fontWeight: 500,
-                                        color: 'white',
+                                        color: 'var(--text)',
                                         marginBottom: '6px',
                                         letterSpacing: '-0.01em',
                                     }}>
@@ -281,7 +281,7 @@ const DocsPage = () => {
                                     </h4>
                                     <p style={{
                                         fontSize: '13px',
-                                        color: 'rgba(255,255,255,0.35)',
+                                        color: 'var(--text-muted)',
                                         fontWeight: 300,
                                         letterSpacing: '0.02em',
                                         lineHeight: 1.6,
@@ -302,7 +302,7 @@ const DocsPage = () => {
                             fontWeight: 700,
                             textTransform: 'uppercase',
                             letterSpacing: '0.6em',
-                            color: 'rgba(255,255,255,0.25)',
+                            color: 'var(--text-dim)',
                             marginBottom: '16px',
                         }}>
                             Extension Capabilities
@@ -310,7 +310,7 @@ const DocsPage = () => {
                         <h3 style={{
                             fontSize: '32px',
                             fontWeight: 300,
-                            color: 'white',
+                            color: 'var(--text)',
                             letterSpacing: '-0.02em',
                         }}>
                             What It <span style={{ fontWeight: 600 }}>Does</span>
@@ -323,24 +323,24 @@ const DocsPage = () => {
                                 key={i}
                                 style={{
                                     padding: '32px',
-                                    background: 'rgba(255,255,255,0.02)',
-                                    border: '1px solid rgba(255,255,255,0.05)',
+                                    background: 'var(--bg-card)',
+                                    border: '1px solid var(--border)',
                                     borderRadius: '28px',
                                     transition: 'all 0.3s',
                                 }}
-                                onMouseEnter={(e) => e.currentTarget.style.borderColor = 'rgba(255,255,255,0.12)'}
-                                onMouseLeave={(e) => e.currentTarget.style.borderColor = 'rgba(255,255,255,0.05)'}
+                                onMouseEnter={(e) => e.currentTarget.style.borderColor = 'var(--text-muted)'}
+                                onMouseLeave={(e) => e.currentTarget.style.borderColor = 'var(--border)'}
                             >
                                 <div style={{
                                     width: '40px',
                                     height: '40px',
                                     borderRadius: '12px',
-                                    background: 'rgba(255,255,255,0.05)',
-                                    border: '1px solid rgba(255,255,255,0.08)',
+                                    background: 'var(--glass-bg)',
+                                    border: '1px solid var(--border)',
                                     display: 'flex',
                                     alignItems: 'center',
                                     justifyContent: 'center',
-                                    color: 'rgba(255,255,255,0.5)',
+                                    color: 'var(--text)',
                                     marginBottom: '20px',
                                 }}>
                                     {f.icon}
@@ -348,7 +348,7 @@ const DocsPage = () => {
                                 <h4 style={{
                                     fontSize: '16px',
                                     fontWeight: 500,
-                                    color: 'white',
+                                    color: 'var(--text)',
                                     marginBottom: '8px',
                                     letterSpacing: '-0.01em',
                                 }}>
@@ -356,7 +356,7 @@ const DocsPage = () => {
                                 </h4>
                                 <p style={{
                                     fontSize: '13px',
-                                    color: 'rgba(255,255,255,0.35)',
+                                    color: 'var(--text-muted)',
                                     fontWeight: 300,
                                     letterSpacing: '0.02em',
                                     lineHeight: 1.6,
@@ -371,19 +371,19 @@ const DocsPage = () => {
                 {/* Important Notes */}
                 <div style={{
                     padding: '32px',
-                    background: 'rgba(255,255,255,0.02)',
-                    border: '1px solid rgba(255,255,255,0.05)',
+                    background: 'var(--bg-card)',
+                    border: '1px solid var(--border)',
                     borderRadius: '24px',
                     marginBottom: '48px',
                 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '20px' }}>
-                        <AlertTriangle size={16} style={{ color: 'rgba(255,255,255,0.4)' }} />
+                        <AlertTriangle size={16} style={{ color: 'var(--text-muted)' }} />
                         <h4 style={{
                             fontSize: '10px',
                             fontWeight: 700,
                             textTransform: 'uppercase',
                             letterSpacing: '0.3em',
-                            color: 'rgba(255,255,255,0.4)',
+                            color: 'var(--text-muted)',
                         }}>
                             Important Notes
                         </h4>
@@ -396,10 +396,10 @@ const DocsPage = () => {
                             'Keep the extracted folder on your computer. Deleting it will remove the extension.',
                         ].map((note, i) => (
                             <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: '10px' }}>
-                                <CheckCircle2 size={14} style={{ color: 'rgba(255,255,255,0.15)', marginTop: '2px', flexShrink: 0 }} />
+                                <CheckCircle2 size={14} style={{ color: 'var(--text-dim)', marginTop: '2px', flexShrink: 0 }} />
                                 <p style={{
                                     fontSize: '13px',
-                                    color: 'rgba(255,255,255,0.35)',
+                                    color: 'var(--text-muted)',
                                     fontWeight: 300,
                                     letterSpacing: '0.02em',
                                     lineHeight: 1.6,
@@ -429,7 +429,7 @@ const DocsPage = () => {
                             alignItems: 'center',
                             gap: '8px',
                             background: 'transparent',
-                            color: 'white',
+                            color: 'var(--text)',
                             padding: '12px 28px',
                             borderRadius: '100px',
                             fontSize: '10px',
@@ -437,11 +437,11 @@ const DocsPage = () => {
                             textTransform: 'uppercase',
                             letterSpacing: '0.2em',
                             textDecoration: 'none',
-                            border: '1px solid rgba(255,255,255,0.15)',
+                            border: '1px solid var(--border)',
                             transition: 'all 0.3s',
                         }}
-                        onMouseEnter={(e) => { e.target.style.background = 'white'; e.target.style.color = 'black'; }}
-                        onMouseLeave={(e) => { e.target.style.background = 'transparent'; e.target.style.color = 'white'; }}
+                        onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--text)'; e.currentTarget.style.color = 'var(--bg)'; }}
+                        onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--text)'; }}
                     >
                         Create Account <ArrowRight size={14} />
                     </Link>

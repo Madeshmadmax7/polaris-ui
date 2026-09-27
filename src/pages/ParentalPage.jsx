@@ -221,7 +221,7 @@ export default function ParentalPage() {
     // Student view — accept invite
     if (user?.role !== 'parent') {
         return (
-            <div className="min-h-screen bg-black flex items-center justify-center px-6 font-outfit">
+            <div className="min-h-screen flex items-center justify-center px-6 font-outfit" style={{ background: 'var(--bg)' }}>
                 <div className="max-w-md w-full animate-in">
                     <div className="text-center mb-16">
                         <div className="inline-block p-6 bg-white/5 border border-white/10 rounded-[40px] mb-10 translate-in">

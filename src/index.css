@@ -14,10 +14,72 @@
   --font-lexend: 'Lexend', sans-serif;
 }
 
+/* ── Theme CSS Variables ─────────────────────────────── */
+:root,
+[data-theme="dark"] {
+  --bg:                  #000000;
+  --bg-alt:              #0a0a0a;
+  --bg-card:             #111111;
+  --bg-hover:            #1a1a1a;
+  --border:              rgba(255,255,255,0.08);
+  --border-light:        rgba(255,255,255,0.04);
+  --text:                #ffffff;
+  --text-muted:          #a1a1aa;
+  --text-dim:            #71717a;
+  --text-faint:          #3f3f46;
+  --nav-bg:              rgba(0,0,0,0.85);
+  --glass-bg:            rgba(255,255,255,0.03);
+  --scrollbar-track:     #000000;
+  --scrollbar-thumb:     #3f3f46;
+  --scrollbar-thumb-hov: #52525b;
+  --selection-bg:        #ffffff;
+  --selection-text:      #000000;
+}
+
+[data-theme="light"] {
+  --bg:                  #f6f7fb;
+  --bg-alt:              #ffffff;
+  --bg-card:             #ffffff;
+  --bg-hover:            #f0f2f6;
+  --border:              rgba(0,0,0,0.08);
+  --border-light:        rgba(0,0,0,0.04);
+  --text:                #09090b;
+  --text-muted:          #52525b;
+  --text-dim:            #71717a;
+  --text-faint:          #a1a1aa;
+  --nav-bg:              rgba(246,247,251,0.92);
+  --glass-bg:            rgba(255,255,255,0.75);
+  --scrollbar-track:     #f1f2f6;
+  --scrollbar-thumb:     #cbd5e1;
+  --scrollbar-thumb-hov: #94a3b8;
+  --selection-bg:        #09090b;
+  --selection-text:      #ffffff;
+}
+
+/* ── Smooth Theme Transition ─────────────────── */
+body, nav, footer, main, [data-theme] {
+  transition:
+    background-color 0.25s cubic-bezier(0.4, 0, 0.2, 1),
+    border-color     0.25s cubic-bezier(0.4, 0, 0.2, 1),
+    color            0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Exclude keyframe-animated elements from transition override */
+.no-theme-transition,
+.no-theme-transition * {
+  transition: none !important;
+}
+
 @layer base {
   body {
-    @apply bg-black text-white font-sans antialiased selection:bg-white selection:text-black;
+    background-color: var(--bg);
+    color: var(--text);
+    @apply font-sans antialiased;
     letter-spacing: -0.01em;
+  }
+  ::selection {
+    background: var(--selection-bg);
+    color: var(--selection-text);
   }
 }
 
@@ -27,7 +89,10 @@
   }
 
   .glass {
-    @apply bg-white/[0.03] backdrop-blur-xl border border-white/5;
+    background: var(--glass-bg);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border: 1px solid var(--border-light);
   }
 
   .custom-scrollbar::-webkit-scrollbar {
@@ -35,11 +100,15 @@
   }
 
   .custom-scrollbar::-webkit-scrollbar-track {
-    @apply bg-transparent;
+    background: transparent;
   }
 
   .custom-scrollbar::-webkit-scrollbar-thumb {
-    @apply bg-white/10 rounded-full hover:bg-white/20 transition-colors;
+    background: var(--border);
+    border-radius: 9999px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: var(--text-muted);
   }
 }
 
@@ -49,11 +118,104 @@
 }
 
 ::-webkit-scrollbar-track {
-  @apply bg-black;
+  background: var(--scrollbar-track);
 }
 
 ::-webkit-scrollbar-thumb {
-  @apply bg-zinc-800 rounded-full border-2 border-black hover:bg-zinc-700 transition-colors;
+  background: var(--scrollbar-thumb);
+  border-radius: 9999px;
+  border: 2px solid var(--scrollbar-track);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--scrollbar-thumb-hov);
+}
+
+/* ── Theme Toggle Button ─────────────────────────────── */
+.theme-toggle {
+  position: relative;
+  width: 52px;
+  height: 28px;
+  border-radius: 9999px;
+  border: 1.5px solid var(--border);
+  background: var(--bg-card);
+  cursor: pointer;
+  flex-shrink: 0;
+  outline: none;
+  padding: 0;
+  overflow: visible;
+  transition:
+    border-color 0.35s,
+    background   0.35s,
+    box-shadow   0.2s !important;
+}
+
+.theme-toggle:hover {
+  box-shadow: 0 0 0 3px rgba(128,128,128,0.18) !important;
+}
+
+.theme-toggle:focus-visible {
+  box-shadow: 0 0 0 3px rgba(128,128,128,0.35) !important;
+}
+
+.theme-toggle__thumb {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 20px;
+  height: 20px;
+  border-radius: 9999px;
+  background: var(--text);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+  will-change: transform;
+}
+
+.theme-toggle__thumb--light {
+  transform: translateX(24px);
+}
+
+.theme-toggle__icon {
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  color: var(--bg);
+  transition: opacity 0.25s, transform 0.3s !important;
+}
+
+.theme-toggle__icon--sun {
+  opacity: 0;
+  transform: rotate(-45deg) scale(0.6);
+}
+.theme-toggle__icon--moon {
+  opacity: 1;
+  transform: rotate(0deg) scale(1);
+}
+
+.theme-toggle__icon--sun.visible {
+  opacity: 1;
+  transform: rotate(0deg) scale(1);
+}
+.theme-toggle__icon--moon.hidden-icon {
+  opacity: 0;
+  transform: rotate(45deg) scale(0.6);
+}
+
+/* Pulse ring on click */
+@keyframes togglePulse {
+  0%   { transform: scale(1);   opacity: 0.5; }
+  100% { transform: scale(2.4); opacity: 0; }
+}
+
+.theme-toggle__pulse {
+  position: absolute;
+  inset: -1px;
+  border-radius: 9999px;
+  border: 1.5px solid var(--text);
+  pointer-events: none;
+  animation: togglePulse 0.55s ease-out forwards;
 }
 
 /* Animations */
@@ -107,3 +269,224 @@
     transform: translateY(0) scale(1);
   }
 }
+
+/* ═══════════════════════════════════════════════════════════
+   LIGHT MODE TAILWIND OVERRIDES
+   These rules override hardcoded Tailwind dark classes when
+   [data-theme="light"] is set on <html>, so ALL pages/components
+   automatically theme cleanly without broken hovers or murky tones.
+   ═══════════════════════════════════════════════════════════ */
+
+/* ── Base canvas ────────────────────────────────────────── */
+[data-theme="light"] body,
+[data-theme="light"] .min-h-screen.bg-black,
+[data-theme="light"] .fixed.inset-0.bg-black {
+  background-color: var(--bg) !important;
+}
+
+/* ── Card surfaces (zinc-900, zinc-950, gray-900, card-level bg-black) */
+[data-theme="light"] .bg-zinc-900,
+[data-theme="light"] .bg-zinc-900\/40,
+[data-theme="light"] .bg-zinc-900\/50,
+[data-theme="light"] .bg-zinc-900\/80,
+[data-theme="light"] .bg-zinc-950,
+[data-theme="light"] .bg-zinc-950\/20,
+[data-theme="light"] .bg-zinc-950\/40,
+[data-theme="light"] .bg-gray-900,
+[data-theme="light"] .bg-gray-950,
+[data-theme="light"] .bg-gray-900\/50,
+[data-theme="light"] .bg-black:not(.min-h-screen):not(body):not(.fixed.inset-0) {
+  background-color: var(--bg-card) !important;
+}
+
+/* ── Elevated nested layers / tags ──────────────────────── */
+[data-theme="light"] .bg-zinc-800,
+[data-theme="light"] .bg-zinc-800\/40,
+[data-theme="light"] .bg-zinc-800\/50,
+[data-theme="light"] .bg-gray-800 {
+  background-color: var(--bg-hover) !important;
+}
+
+[data-theme="light"] .bg-zinc-700 {
+  background-color: #e2e8f0 !important;
+}
+
+/* ── Glass & Overlay divs ───────────────────────────────── */
+[data-theme="light"] .bg-white\/5,
+[data-theme="light"] .bg-white\/\[0\.03\],
+[data-theme="light"] .bg-white\/\[0\.05\],
+[data-theme="light"] .bg-white\/10 {
+  background-color: rgba(0, 0, 0, 0.035) !important;
+}
+
+[data-theme="light"] .bg-black\/40,
+[data-theme="light"] .bg-black\/60,
+[data-theme="light"] .bg-black\/80 {
+  background-color: rgba(0, 0, 0, 0.03) !important;
+}
+
+[data-theme="light"] .bg-black\/80.backdrop-blur-xl {
+  background: var(--nav-bg) !important;
+}
+
+/* ── Primary CTA / Inverted components ──────────────────── */
+/* Buttons, tabs, badges that are bg-white (inverted against dark) */
+[data-theme="light"] .bg-white.text-black,
+[data-theme="light"] button.bg-white,
+[data-theme="light"] a.bg-white {
+  background-color: var(--text) !important;
+  color: var(--bg) !important;
+  border-color: var(--text) !important;
+}
+
+[data-theme="light"] .bg-white.text-black svg,
+[data-theme="light"] button.bg-white svg,
+[data-theme="light"] a.bg-white svg {
+  color: var(--bg) !important;
+  stroke: var(--bg) !important;
+}
+
+/* Progress bar fill (bg-white on dark track -> black fill on light track) */
+[data-theme="light"] .bg-white:not(button):not(a):not(.text-black) {
+  background-color: var(--text) !important;
+}
+
+/* ── Hover Overrides ────────────────────────────────────── */
+/* Standalone hover:bg-white */
+[data-theme="light"] .hover\:bg-white:hover {
+  background-color: var(--text) !important;
+  color: var(--bg) !important;
+  border-color: var(--text) !important;
+}
+
+/* Hover text inversion */
+[data-theme="light"] .hover\:text-black:hover {
+  color: var(--bg) !important;
+}
+
+[data-theme="light"] .hover\:text-white:hover {
+  color: var(--text) !important;
+}
+
+/* Group hover text to white -> light mode turns to dark text */
+[data-theme="light"] .group:hover .group-hover\:text-white,
+[data-theme="light"] .group\/item:hover .group-hover\/item\:text-white,
+[data-theme="light"] .group\/step:hover .group-hover\/step\:text-white,
+[data-theme="light"] .group\/stat:hover .group-hover\/stat\:text-white,
+[data-theme="light"] [class*="group"]:hover [class*="group-hover"][class*="text-white"] {
+  color: var(--text) !important;
+}
+
+/* Group hover bg-white / text-black */
+[data-theme="light"] .group:hover .group-hover\:bg-white,
+[data-theme="light"] .group\/item:hover .group-hover\/item\:bg-white,
+[data-theme="light"] [class*="group"]:hover [class*="group-hover"][class*="bg-white"] {
+  background-color: var(--text) !important;
+  color: var(--bg) !important;
+}
+
+[data-theme="light"] .group:hover .group-hover\:text-black,
+[data-theme="light"] .group\/item:hover .group-hover\/item\:text-black,
+[data-theme="light"] [class*="group"]:hover [class*="group-hover"][class*="text-black"] {
+  color: var(--bg) !important;
+}
+
+[data-theme="light"] .group:hover .group-hover\:border-white {
+  border-color: var(--text) !important;
+}
+
+/* Zinc hover states (cards, rows, dropdown items) */
+[data-theme="light"] .hover\:bg-zinc-700:hover,
+[data-theme="light"] .hover\:bg-zinc-800:hover,
+[data-theme="light"] .hover\:bg-zinc-900:hover,
+[data-theme="light"] .hover\:bg-zinc-900\/80:hover,
+[data-theme="light"] .hover\:bg-zinc-950:hover {
+  background-color: var(--bg-hover) !important;
+}
+
+/* Subtle white overlay hover states */
+[data-theme="light"] .hover\:bg-white\/5:hover  { background-color: rgba(0, 0, 0, 0.04) !important; }
+[data-theme="light"] .hover\:bg-white\/10:hover { background-color: rgba(0, 0, 0, 0.07) !important; }
+[data-theme="light"] .hover\:bg-white\/20:hover { background-color: rgba(0, 0, 0, 0.11) !important; }
+
+/* ── Text overrides ───────────────────────────────────── */
+[data-theme="light"] .text-white,
+[data-theme="light"] .text-white\/90,
+[data-theme="light"] .text-white\/80,
+[data-theme="light"] .text-white\/70 { color: var(--text) !important; }
+[data-theme="light"] .text-white\/60,
+[data-theme="light"] .text-white\/50,
+[data-theme="light"] .text-white\/40 { color: var(--text-muted) !important; }
+[data-theme="light"] .text-white\/30,
+[data-theme="light"] .text-white\/25,
+[data-theme="light"] .text-white\/20 { color: var(--text-dim) !important; }
+[data-theme="light"] .text-white\/10 { color: var(--text-faint) !important; }
+[data-theme="light"] .text-white\/5  { color: rgba(0, 0, 0, 0.08) !important; }
+[data-theme="light"] .text-zinc-100 { color: #09090b !important; }
+[data-theme="light"] .text-zinc-200 { color: #18181b !important; }
+[data-theme="light"] .text-zinc-300 { color: #27272a !important; }
+[data-theme="light"] .text-zinc-400 { color: var(--text-muted) !important; }
+[data-theme="light"] .text-zinc-500 { color: var(--text-dim) !important; }
+[data-theme="light"] .text-zinc-600 { color: var(--text-muted) !important; }
+[data-theme="light"] .text-zinc-700 { color: var(--text-dim) !important; }
+[data-theme="light"] .text-zinc-800 { color: #52525b !important; }
+
+/* ── Border overrides ─────────────────────────────────── */
+[data-theme="light"] .border-white\/5   { border-color: var(--border-light) !important; }
+[data-theme="light"] .border-white\/10  { border-color: var(--border) !important; }
+[data-theme="light"] .border-white\/20  { border-color: rgba(0, 0, 0, 0.14) !important; }
+[data-theme="light"] .border-white\/25  { border-color: rgba(0, 0, 0, 0.18) !important; }
+[data-theme="light"] .border-white\/30  { border-color: rgba(0, 0, 0, 0.20) !important; }
+[data-theme="light"] .border-white\/40  { border-color: rgba(0, 0, 0, 0.24) !important; }
+[data-theme="light"] .border-white\/50  { border-color: rgba(0, 0, 0, 0.30) !important; }
+[data-theme="light"] .border-white      { border-color: var(--text) !important; }
+
+[data-theme="light"] .hover\:border-white:hover     { border-color: var(--text) !important; }
+[data-theme="light"] .hover\:border-white\/10:hover { border-color: rgba(0, 0, 0, 0.16) !important; }
+[data-theme="light"] .hover\:border-white\/20:hover { border-color: rgba(0, 0, 0, 0.22) !important; }
+[data-theme="light"] .hover\:border-white\/25:hover { border-color: rgba(0, 0, 0, 0.26) !important; }
+[data-theme="light"] .hover\:border-zinc-700:hover,
+[data-theme="light"] .hover\:border-zinc-800:hover { border-color: rgba(0, 0, 0, 0.20) !important; }
+
+/* ── Input field overrides ────────────────────────────── */
+[data-theme="light"] input,
+[data-theme="light"] select,
+[data-theme="light"] textarea {
+  background-color: #ffffff !important;
+  border-color: rgba(0, 0, 0, 0.12) !important;
+  color: var(--text) !important;
+}
+[data-theme="light"] input::placeholder,
+[data-theme="light"] textarea::placeholder {
+  color: var(--text-faint) !important;
+}
+[data-theme="light"] input:focus,
+[data-theme="light"] select:focus,
+[data-theme="light"] textarea:focus {
+  border-color: rgba(0, 0, 0, 0.40) !important;
+  outline: none;
+}
+[data-theme="light"] select option {
+  background-color: #ffffff !important;
+  color: var(--text) !important;
+}
+
+/* ── Card shadows in light mode ───────────────────────── */
+[data-theme="light"] .shadow-3xl,
+[data-theme="light"] .shadow-2xl {
+  box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.06), 0 4px 12px -2px rgba(0, 0, 0, 0.03) !important;
+}
+
+/* ── Spinners ─────────────────────────────────────────── */
+[data-theme="light"] .border-t-white { border-top-color: var(--text) !important; }
+[data-theme="light"] .border-white\/5.border-t-white { border-color: rgba(0, 0, 0, 0.08) !important; border-top-color: var(--text) !important; }
+
+/* ── Landing Page Background Crossfade ──────────────── */
+.landing-bg--dark,
+.landing-bg--light {
+  transition: opacity 0.4s ease-in-out !important;
+}
+[data-theme="dark"] .landing-bg--dark   { opacity: 1 !important; }
+[data-theme="dark"] .landing-bg--light  { opacity: 0 !important; }
+[data-theme="light"] .landing-bg--dark  { opacity: 0 !important; }
+[data-theme="light"] .landing-bg--light { opacity: 1 !important; }

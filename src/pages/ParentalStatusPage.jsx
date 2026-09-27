@@ -26,7 +26,7 @@ export default function ParentalStatusPage() {
 
     if (loading) {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-black font-outfit">
+            <div className="min-h-screen flex items-center justify-center font-outfit" style={{ background: 'var(--bg)' }}>
                 <div className="flex flex-col items-center gap-6">
                     <div className="w-12 h-12 border-2 border-white/5 border-t-white rounded-full animate-spin"></div>
                     <span className="text-[10px] font-bold uppercase tracking-[0.5em] text-zinc-600">Loading Child Dashboard</span>

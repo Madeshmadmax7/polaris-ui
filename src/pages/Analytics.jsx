@@ -88,7 +88,7 @@ export default function Analytics() {
                     </div>
                     {nextRank && (
                         <div style={styles.nextRank}>
-                            {nextRank.xpNeeded} XP to <span style={{ color: 'rgba(255,255,255,0.5)' }}>{nextRank.title}</span>
+                            {nextRank.xpNeeded} XP to <span style={{ color: 'var(--text)' }}>{nextRank.title}</span>
                         </div>
                     )}
                 </div>
@@ -112,7 +112,7 @@ export default function Analytics() {
                 <div style={styles.xpGuideGrid}>
                     <div style={styles.xpGuideSection}>
                         <h4 style={styles.guideHeader}>
-                            <TrendingUp size={12} color="#34d399" strokeWidth={2} style={{ marginRight: '6px' }} />
+                            <TrendingUp size={12} color="#10b981" strokeWidth={2} style={{ marginRight: '6px' }} />
                             How to Earn
                         </h4>
                         {[
@@ -122,15 +122,15 @@ export default function Analytics() {
                             { action: 'Stay within focus time', xp: '+5 XP', Icon: Timer },
                         ].map((item) => (
                             <div key={item.action} style={styles.xpRule}>
-                                <item.Icon size={14} color="rgba(255,255,255,0.35)" strokeWidth={1.5} />
+                                <item.Icon size={14} color="var(--text-dim)" strokeWidth={1.5} />
                                 <span style={styles.ruleAction}>{item.action}</span>
-                                <span style={{ ...styles.ruleXP, color: '#34d399' }}>{item.xp}</span>
+                                <span style={{ ...styles.ruleXP, color: '#10b981' }}>{item.xp}</span>
                             </div>
                         ))}
                     </div>
                     <div style={styles.xpGuideSection}>
                         <h4 style={styles.guideHeader}>
-                            <TrendingDown size={12} color="#f87171" strokeWidth={2} style={{ marginRight: '6px' }} />
+                            <TrendingDown size={12} color="#ef4444" strokeWidth={2} style={{ marginRight: '6px' }} />
                             What to Avoid
                         </h4>
                         {[
@@ -140,9 +140,9 @@ export default function Analytics() {
                             { action: 'Skipped >50%', xp: '-3 XP', Icon: SkipForward },
                         ].map((item) => (
                             <div key={item.action} style={styles.xpRule}>
-                                <item.Icon size={14} color="rgba(255,255,255,0.35)" strokeWidth={1.5} />
+                                <item.Icon size={14} color="var(--text-dim)" strokeWidth={1.5} />
                                 <span style={styles.ruleAction}>{item.action}</span>
-                                <span style={{ ...styles.ruleXP, color: '#f87171' }}>{item.xp}</span>
+                                <span style={{ ...styles.ruleXP, color: '#ef4444' }}>{item.xp}</span>
                             </div>
                         ))}
                     </div>
@@ -154,16 +154,16 @@ export default function Analytics() {
                 <div style={styles.section}>
                     <h2 style={styles.sectionTitle}>Learning Streak</h2>
                     <div style={styles.statsGrid}>
-                        <div style={{ ...styles.statCard, borderColor: streak.current_streak > 0 ? 'rgba(251,146,60,0.3)' : 'rgba(255,255,255,0.12)' }}>
-                            <Flame size={22} color={streak.current_streak > 0 ? '#fb923c' : 'rgba(255,255,255,0.2)'} strokeWidth={1.5} />
+                        <div style={{ ...styles.statCard, borderColor: streak.current_streak > 0 ? 'rgba(251,146,60,0.4)' : 'var(--border)' }}>
+                            <Flame size={22} color={streak.current_streak > 0 ? '#fb923c' : 'var(--text-dim)'} strokeWidth={1.5} />
                             <div style={styles.statContent}>
-                                <span style={{ ...styles.statValue, color: streak.current_streak > 0 ? '#fb923c' : '#fff' }}>{streak.current_streak}</span>
+                                <span style={{ ...styles.statValue, color: streak.current_streak > 0 ? '#fb923c' : 'var(--text)' }}>{streak.current_streak}</span>
                                 <span style={styles.statLabel}>Current Streak (days)</span>
                             </div>
                             <div style={styles.levelProgress}>{streak.today_active ? '✅ Active today' : '⚠️ No activity today yet'}</div>
                         </div>
                         <div style={styles.statCard}>
-                            <TrendingUp size={22} color="rgba(255,255,255,0.4)" strokeWidth={1.5} />
+                            <TrendingUp size={22} color="var(--text-muted)" strokeWidth={1.5} />
                             <div style={styles.statContent}>
                                 <span style={styles.statValue}>{streak.longest_streak}</span>
                                 <span style={styles.statLabel}>Longest Streak</span>
@@ -171,7 +171,7 @@ export default function Analytics() {
                             <div style={styles.levelProgress}>Best ever run</div>
                         </div>
                         <div style={styles.statCard}>
-                            <Activity size={22} color="rgba(255,255,255,0.45)" strokeWidth={1.5} />
+                            <Activity size={22} color="var(--text-muted)" strokeWidth={1.5} />
                             <div style={styles.statContent}>
                                 <span style={styles.statValue}>{streak.total_active_days}</span>
                                 <span style={styles.statLabel}>Total Active Days</span>
@@ -190,7 +190,7 @@ export default function Analytics() {
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                             <div style={{ display: 'flex', gap: '32px', flexWrap: 'wrap' }}>
                                 <div>
-                                    <div style={{ fontSize: '22px', fontWeight: 800, color: '#fff' }}>{weeklyReport.this_week.productive_minutes}m</div>
+                                    <div style={{ fontSize: '22px', fontWeight: 800, color: 'var(--text)' }}>{weeklyReport.this_week.productive_minutes}m</div>
                                     <div style={styles.statLabel}>Productive Time</div>
                                     {weeklyReport.vs_last_week.productive_minutes_change !== null && (
                                         <div style={{ fontSize: '9px', color: weeklyReport.vs_last_week.productive_minutes_change >= 0 ? '#34d399' : '#f87171', marginTop: '2px' }}>
@@ -199,7 +199,7 @@ export default function Analytics() {
                                     )}
                                 </div>
                                 <div>
-                                    <div style={{ fontSize: '22px', fontWeight: 800, color: '#fff' }}>{weeklyReport.this_week.chapters_completed}</div>
+                                    <div style={{ fontSize: '22px', fontWeight: 800, color: 'var(--text)' }}>{weeklyReport.this_week.chapters_completed}</div>
                                     <div style={styles.statLabel}>Chapters Done</div>
                                     {weeklyReport.vs_last_week.chapters_change !== null && (
                                         <div style={{ fontSize: '9px', color: weeklyReport.vs_last_week.chapters_change >= 0 ? '#34d399' : '#f87171', marginTop: '2px' }}>
@@ -208,25 +208,25 @@ export default function Analytics() {
                                     )}
                                 </div>
                                 <div>
-                                    <div style={{ fontSize: '22px', fontWeight: 800, color: '#fff' }}>{weeklyReport.this_week.active_days}</div>
+                                    <div style={{ fontSize: '22px', fontWeight: 800, color: 'var(--text)' }}>{weeklyReport.this_week.active_days}</div>
                                     <div style={styles.statLabel}>Active Days</div>
                                 </div>
                                 {weeklyReport.this_week.quiz_average !== null && (
                                     <div>
-                                        <div style={{ fontSize: '22px', fontWeight: 800, color: '#fff' }}>{weeklyReport.this_week.quiz_average}%</div>
+                                        <div style={{ fontSize: '22px', fontWeight: 800, color: 'var(--text)' }}>{weeklyReport.this_week.quiz_average}%</div>
                                         <div style={styles.statLabel}>Quiz Average</div>
                                     </div>
                                 )}
                             </div>
-                            {reportExpanded ? <ChevronUp size={16} color='rgba(255,255,255,0.3)' /> : <ChevronDown size={16} color='rgba(255,255,255,0.3)' />}
+                            {reportExpanded ? <ChevronUp size={16} color="var(--text-dim)" /> : <ChevronDown size={16} color="var(--text-dim)" />}
                         </div>
                         {reportExpanded && weeklyReport.this_week.top_topics.length > 0 && (
-                            <div style={{ marginTop: '16px', borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '16px' }}>
+                            <div style={{ marginTop: '16px', borderTop: '1px solid var(--border)', paddingTop: '16px' }}>
                                 <div style={{ ...styles.statLabel, marginBottom: '10px' }}>Top Topics This Week</div>
                                 {weeklyReport.this_week.top_topics.map((t, i) => (
-                                    <div key={i} style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 0', borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
-                                        <span style={{ fontSize: '12px', color: 'rgba(255,255,255,0.6)' }}>{t.title}</span>
-                                        <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.3)' }}>{Math.round(t.seconds / 60)}m</span>
+                                    <div key={i} style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 0', borderBottom: '1px solid var(--border-light)' }}>
+                                        <span style={{ fontSize: '12px', color: 'var(--text)' }}>{t.title}</span>
+                                        <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>{Math.round(t.seconds / 60)}m</span>
                                     </div>
                                 ))}
                             </div>
@@ -240,18 +240,18 @@ export default function Analytics() {
                 <div style={styles.section}>
                     <h2 style={styles.sectionTitle}>Learning Velocity — Last 30 Days</h2>
                     <div style={styles.statCard}>
-                        <div style={{ display: 'flex', gap: '32px', marginBottom: '24px', flexWrap: 'wrap', paddingBottom: '20px', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                        <div style={{ display: 'flex', gap: '32px', marginBottom: '24px', flexWrap: 'wrap', paddingBottom: '20px', borderBottom: '1px solid var(--border-light)' }}>
                             <div>
-                                <div style={{ fontSize: '28px', fontWeight: 700, color: '#fff', letterSpacing: '-0.03em', lineHeight: 1 }}>{velocity.total_completed}</div>
-                                <div style={{ fontSize: '9px', fontWeight: 700, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.25)', marginTop: '6px' }}>Total Chapters</div>
+                                <div style={{ fontSize: '28px', fontWeight: 700, color: 'var(--text)', letterSpacing: '-0.03em', lineHeight: 1 }}>{velocity.total_completed}</div>
+                                <div style={{ fontSize: '9px', fontWeight: 700, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--text-dim)', marginTop: '6px' }}>Total Chapters</div>
                             </div>
                             <div>
-                                <div style={{ fontSize: '28px', fontWeight: 700, color: '#fff', letterSpacing: '-0.03em', lineHeight: 1 }}>{velocity.peak_day}</div>
-                                <div style={{ fontSize: '9px', fontWeight: 700, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.25)', marginTop: '6px' }}>Peak Day</div>
+                                <div style={{ fontSize: '28px', fontWeight: 700, color: 'var(--text)', letterSpacing: '-0.03em', lineHeight: 1 }}>{velocity.peak_day}</div>
+                                <div style={{ fontSize: '9px', fontWeight: 700, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--text-dim)', marginTop: '6px' }}>Peak Day</div>
                             </div>
                             <div>
-                                <div style={{ fontSize: '28px', fontWeight: 700, color: '#fff', letterSpacing: '-0.03em', lineHeight: 1 }}>{velocity.avg_per_day}</div>
-                                <div style={{ fontSize: '9px', fontWeight: 700, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.25)', marginTop: '6px' }}>Avg / Day</div>
+                                <div style={{ fontSize: '28px', fontWeight: 700, color: 'var(--text)', letterSpacing: '-0.03em', lineHeight: 1 }}>{velocity.avg_per_day}</div>
+                                <div style={{ fontSize: '9px', fontWeight: 700, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--text-dim)', marginTop: '6px' }}>Avg / Day</div>
                             </div>
                         </div>
                         <VelocityGraph data={velocity.days} />
@@ -266,8 +266,8 @@ export default function Analytics() {
                     {topicHeatmap.plans.map(plan => (
                         <div key={plan.plan_id} style={{ ...styles.statCard, marginBottom: '12px' }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-                                <span style={{ fontSize: '13px', fontWeight: 600, color: '#fff', letterSpacing: '-0.01em' }}>{plan.plan_title}</span>
-                                <span style={{ fontSize: '9px', fontWeight: 700, letterSpacing: '0.15em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.2)' }}>{plan.total_watch_formatted}</span>
+                                <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text)', letterSpacing: '-0.01em' }}>{plan.plan_title}</span>
+                                <span style={{ fontSize: '9px', fontWeight: 700, letterSpacing: '0.15em', textTransform: 'uppercase', color: 'var(--text-dim)' }}>{plan.total_watch_formatted}</span>
                             </div>
                             {plan.topics.map(t => (
                                 <div key={t.chapter} style={{ marginBottom: '12px' }}>
@@ -275,20 +275,20 @@ export default function Analytics() {
                                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0, flex: 1 }}>
                                             <div style={{
                                                 width: '5px', height: '5px', borderRadius: '50%', flexShrink: 0,
-                                                background: t.is_completed ? '#fff' : 'transparent',
-                                                border: t.is_completed ? '1.5px solid #fff' : '1.5px solid rgba(255,255,255,0.2)',
+                                                background: t.is_completed ? 'var(--text)' : 'transparent',
+                                                border: t.is_completed ? '1.5px solid var(--text)' : '1.5px solid var(--border)',
                                             }} />
-                                            <span style={{ fontSize: '11px', color: t.is_completed ? 'rgba(255,255,255,0.65)' : 'rgba(255,255,255,0.3)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', letterSpacing: '0.01em' }}>
+                                            <span style={{ fontSize: '11px', color: t.is_completed ? 'var(--text)' : 'var(--text-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', letterSpacing: '0.01em' }}>
                                                 {t.title}
                                             </span>
                                         </div>
-                                        <span style={{ fontSize: '9px', fontWeight: 700, letterSpacing: '0.1em', color: 'rgba(255,255,255,0.18)', flexShrink: 0, paddingLeft: '12px' }}>
+                                        <span style={{ fontSize: '9px', fontWeight: 700, letterSpacing: '0.1em', color: 'var(--text-dim)', flexShrink: 0, paddingLeft: '12px' }}>
                                             {Math.round(t.watched_seconds / 60)}m
-                                            {t.playback_rate !== 1.0 ? <span style={{ color: 'rgba(255,255,255,0.1)' }}> · {t.playback_rate}x</span> : ''}
+                                            {t.playback_rate !== 1.0 ? <span style={{ color: 'var(--text-dim)', opacity: 0.7 }}> · {t.playback_rate}x</span> : ''}
                                         </span>
                                     </div>
-                                    <div style={{ width: '100%', height: '2px', background: 'rgba(255,255,255,0.04)', borderRadius: '2px', overflow: 'hidden' }}>
-                                        <div style={{ height: '100%', width: `${t.watch_pct}%`, background: t.is_completed ? 'rgba(255,255,255,0.7)' : 'rgba(255,255,255,0.15)', borderRadius: '2px', transition: 'width 1.2s ease' }} />
+                                    <div style={{ width: '100%', height: '2px', background: 'var(--border)', borderRadius: '2px', overflow: 'hidden' }}>
+                                        <div style={{ height: '100%', width: `${t.watch_pct}%`, background: t.is_completed ? 'var(--text)' : 'var(--text-faint)', borderRadius: '2px', transition: 'width 1.2s ease' }} />
                                     </div>
                                 </div>
                             ))}
@@ -327,7 +327,7 @@ function VelocityGraph({ data }) {
         <div>
             <svg viewBox={`0 0 ${W} ${H}`} style={{ width: '100%', height: '120px', display: 'block' }}>
                 {/* baseline */}
-                <line x1={PAD_X} y1={H - PAD_Y} x2={W - PAD_X} y2={H - PAD_Y} stroke="rgba(255,255,255,0.05)" strokeWidth="1" />
+                <line x1={PAD_X} y1={H - PAD_Y} x2={W - PAD_X} y2={H - PAD_Y} stroke="var(--border)" strokeWidth="1" />
                 {data.map((d, i) => {
                     const bH = Math.max(d.chapters > 0 ? 2 : 0, (d.chapters / maxVal) * (H - PAD_Y * 2));
                     return (
@@ -338,7 +338,7 @@ function VelocityGraph({ data }) {
                             width={barW}
                             height={bH}
                             rx="1.5"
-                            fill={d.chapters > 0 ? 'rgba(255,255,255,0.7)' : 'rgba(255,255,255,0.04)'}
+                            fill={d.chapters > 0 ? 'var(--text)' : 'var(--border)'}
                         />
                     );
                 })}
@@ -346,7 +346,7 @@ function VelocityGraph({ data }) {
                     <path
                         d={avgPath}
                         fill="none"
-                        stroke="rgba(255,255,255,0.3)"
+                        stroke="var(--text-dim)"
                         strokeWidth="1.5"
                         strokeLinecap="round"
                         strokeLinejoin="round"
@@ -355,18 +355,18 @@ function VelocityGraph({ data }) {
                 )}
             </svg>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '10px' }}>
-                <span style={{ fontSize: '9px', color: 'rgba(255,255,255,0.2)', letterSpacing: '0.05em' }}>{data[0]?.date}</span>
+                <span style={{ fontSize: '9px', color: 'var(--text-dim)', letterSpacing: '0.05em' }}>{data[0]?.date}</span>
                 <div style={{ display: 'flex', gap: '16px' }}>
-                    <span style={{ fontSize: '9px', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.25)', display: 'flex', alignItems: 'center', gap: '5px' }}>
-                        <span style={{ display: 'inline-block', width: '8px', height: '8px', background: 'rgba(255,255,255,0.6)', borderRadius: '2px' }} />
+                    <span style={{ fontSize: '9px', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                        <span style={{ display: 'inline-block', width: '8px', height: '8px', background: 'var(--text)', borderRadius: '2px' }} />
                         Daily chapters
                     </span>
-                    <span style={{ fontSize: '9px', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.25)', display: 'flex', alignItems: 'center', gap: '5px' }}>
-                        <span style={{ display: 'inline-block', width: '14px', height: '1.5px', background: 'rgba(255,255,255,0.3)', borderRadius: '2px', marginBottom: '1px' }} />
+                    <span style={{ fontSize: '9px', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                        <span style={{ display: 'inline-block', width: '14px', height: '1.5px', background: 'var(--text-dim)', borderRadius: '2px', marginBottom: '1px' }} />
                         Rolling avg
                     </span>
                 </div>
-                <span style={{ fontSize: '9px', color: 'rgba(255,255,255,0.2)', letterSpacing: '0.05em' }}>{data[data.length - 1]?.date}</span>
+                <span style={{ fontSize: '9px', color: 'var(--text-dim)', letterSpacing: '0.05em' }}>{data[data.length - 1]?.date}</span>
             </div>
         </div>
     );
@@ -376,7 +376,7 @@ function VelocityGraph({ data }) {
 const styles = {
     container: {
         minHeight: '100vh',
-        background: '#000',
+        background: 'var(--bg)',
         padding: '48px 24px',
         fontFamily: "'Outfit', sans-serif",
         maxWidth: '1000px',
@@ -389,13 +389,13 @@ const styles = {
         margin: 0,
         fontSize: '28px',
         fontWeight: 800,
-        color: '#fff',
+        color: 'var(--text)',
         letterSpacing: '-0.02em',
     },
     subtitle: {
         margin: '8px 0 0',
         fontSize: '13px',
-        color: 'rgba(255,255,255,0.35)',
+        color: 'var(--text-muted)',
     },
     statsGrid: {
         display: 'grid',
@@ -405,9 +405,9 @@ const styles = {
     },
     statCard: {
         padding: '24px',
-        background: 'rgba(255,255,255,0.02)',
+        background: 'var(--glass-bg)',
         borderRadius: '20px',
-        border: '1px solid rgba(255,255,255,0.12)',
+        border: '1px solid var(--border)',
         display: 'flex',
         flexDirection: 'column',
         gap: '12px',
@@ -420,19 +420,19 @@ const styles = {
     statValue: {
         fontSize: '28px',
         fontWeight: 800,
-        color: '#fff',
+        color: 'var(--text)',
         lineHeight: 1,
     },
     statLabel: {
         fontSize: '10px',
-        color: 'rgba(255,255,255,0.3)',
+        color: 'var(--text-dim)',
         textTransform: 'uppercase',
         letterSpacing: '0.15em',
     },
     miniBar: {
         width: '100%',
         height: '4px',
-        background: 'rgba(255,255,255,0.05)',
+        background: 'var(--border)',
         borderRadius: '4px',
         overflow: 'hidden',
     },
@@ -443,11 +443,11 @@ const styles = {
     },
     levelProgress: {
         fontSize: '9px',
-        color: 'rgba(255,255,255,0.2)',
+        color: 'var(--text-dim)',
     },
     nextRank: {
         fontSize: '9px',
-        color: 'rgba(255,255,255,0.2)',
+        color: 'var(--text-dim)',
     },
     xpGuideGrid: {
         display: 'grid',
@@ -456,15 +456,15 @@ const styles = {
     },
     xpGuideSection: {
         padding: '20px',
-        background: 'rgba(255,255,255,0.02)',
+        background: 'var(--glass-bg)',
         borderRadius: '16px',
-        border: '1px solid rgba(255,255,255,0.12)',
+        border: '1px solid var(--border)',
     },
     guideHeader: {
         margin: '0 0 14px',
         fontSize: '11px',
         fontWeight: 700,
-        color: 'rgba(255,255,255,0.5)',
+        color: 'var(--text-muted)',
         textTransform: 'uppercase',
         letterSpacing: '0.1em',
         display: 'flex',
@@ -475,12 +475,12 @@ const styles = {
         alignItems: 'center',
         gap: '10px',
         padding: '8px 0',
-        borderBottom: '1px solid rgba(255,255,255,0.05)',
+        borderBottom: '1px solid var(--border-light)',
     },
     ruleAction: {
         flex: 1,
         fontSize: '12px',
-        color: 'rgba(255,255,255,0.5)',
+        color: 'var(--text-muted)',
     },
     ruleXP: {
         fontSize: '11px',
@@ -494,7 +494,7 @@ const styles = {
         margin: '0 0 16px',
         fontSize: '10px',
         fontWeight: 700,
-        color: 'rgba(255,255,255,0.3)',
+        color: 'var(--text-dim)',
         letterSpacing: '0.3em',
         textTransform: 'uppercase',
     },

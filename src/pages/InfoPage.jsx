@@ -3,9 +3,9 @@ import { Shield, Zap, Target, Cpu, ChevronRight } from 'lucide-react';
 
 const InfoPage = ({ title, subtitle, content, icon: Icon }) => {
     return (
-        <div className="min-h-screen bg-black font-outfit">
+        <div className="min-h-screen font-outfit" style={{ background: 'var(--bg)', color: 'var(--text)' }}>
             {/* Header section */}
-            <div className="bg-black text-white pt-40 pb-24 px-6 border-b border-white/5">
+            <div className="pt-40 pb-24 px-6" style={{ background: 'var(--bg)', borderBottom: '1px solid var(--border-light)' }}>
                 <div className="max-w-5xl mx-auto">
                     <div className="flex items-center gap-4 mb-8 translate-in">
                         {Icon && (
@@ -31,7 +31,7 @@ const InfoPage = ({ title, subtitle, content, icon: Icon }) => {
                         {content.map((section, idx) => (
                             <section key={idx} className="space-y-8 animate-in" style={{ animationDelay: `${idx * 100}ms` }}>
                                 <div className="flex items-center gap-4">
-                                    <div className="w-1.5 h-1.5 rounded-full bg-white"></div>
+                                    <div className="w-1.5 h-1.5 rounded-full" style={{ background: 'var(--text)' }}></div>
                                     <h2 className="text-2xl font-medium tracking-tight text-white">
                                         {section.heading}
                                     </h2>

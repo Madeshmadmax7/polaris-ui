@@ -1,40 +1,66 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight, Zap, Target, Cpu, Shield } from 'lucide-react';
-import bgImage from '../images/bg3.png';
+import { useTheme } from '../App';
+import bgImageDark from '../images/bgimg.jpg';
+import bgImageLight from '../images/bgimg-light.png';
 
 const LandingPage = () => {
+    const themeContext = useTheme();
+    const isLight = themeContext?.isLight || themeContext?.theme === 'light';
+
     return (
-        <div className="flex flex-col min-h-screen bg-black font-outfit">
-            <section className="relative min-h-[calc(100vh-80px)] flex items-end justify-start text-white overflow-hidden bg-black px-12 md:px-32 pb-12">
+        <div className="flex flex-col min-h-screen font-outfit" style={{ background: 'var(--bg)' }}>
+            <section className="relative min-h-[calc(100vh-80px)] flex items-end justify-start overflow-hidden px-12 md:px-32 pb-12" style={{ background: 'var(--bg)' }}>
+                {/* Dark Mode Background Layer */}
                 <div 
-                    className="absolute -top-10 inset-x-0 bottom-0 z-0" 
+                    className="landing-bg--dark absolute -top-10 inset-x-0 bottom-0 z-0 pointer-events-none" 
                     style={{ 
-                        backgroundImage: `url(${bgImage})`,
+                        backgroundImage: `url(${bgImageDark})`,
                         backgroundSize: 'cover',
-                        backgroundPosition: 'center top'
+                        backgroundPosition: 'center top',
+                        opacity: isLight ? 0 : 1,
+                        transition: 'opacity 0.4s ease-in-out'
                     }}
-                ></div>
+                />
                 
-                {/* Immersive Overlays */}
-                {/* <div className="absolute inset-0 bg-gradient-to-t from-black via-black/10 to-transparent z-0"></div> */}
-                {/* <div className="absolute inset-x-0 top-0 h-40 bg-gradient-to-b from-black to-transparent z-10"></div> */}
+                {/* Light Mode Background Layer */}
+                <div 
+                    className="landing-bg--light absolute -top-10 inset-x-0 bottom-0 z-0 pointer-events-none" 
+                    style={{ 
+                        backgroundImage: `url(${bgImageLight})`,
+                        backgroundSize: 'cover',
+                        backgroundPosition: 'center top',
+                        opacity: isLight ? 1 : 0,
+                        transition: 'opacity 0.4s ease-in-out'
+                    }}
+                />
                 
                 <div className="relative z-10 max-w-xl text-left animate-in fade-in slide-in-from-bottom-8 duration-1000">
-                    <h1 className="text-4xl md:text-5xl font-light mb-6 tracking-tight leading-[1.1] text-white">
+                    <h1 className="text-4xl md:text-5xl font-light mb-6 tracking-tight leading-[1.1]" style={{ color: 'var(--text)' }}>
                         Master Your<br />
-                        <span className="font-semibold text-white/90">Digital Existence</span>
+                        <span className="font-semibold" style={{ color: 'var(--text)' }}>Digital Existence</span>
                     </h1>
                     
-                    <p className="text-[13px] md:text-sm mb-10 text-zinc-400 max-w-md font-light tracking-wide leading-relaxed">
+                    <p className="text-[13px] md:text-sm mb-10 max-w-md font-normal tracking-wide leading-relaxed" style={{ color: isLight ? '#09090b' : 'var(--text-muted)' }}>
                         The definitive operating system for high-performance productivity, adaptive learning, and cognitive clarity.
                     </p>
                     
                     <div className="flex flex-col sm:flex-row gap-4">
-                        <Link to="/docs" className="bg-white text-black px-10 py-3 rounded-full font-bold text-[10px] uppercase tracking-[0.2em] hover:opacity-90 transition-all text-center">
+                        <Link to="/docs" className="bg-white text-black px-10 py-3 rounded-full font-bold text-[10px] uppercase tracking-[0.2em] hover:opacity-90 transition-all text-center shadow-lg">
                             Get Started
                         </Link>
-                        <Link to="/features" className="bg-transparent border border-white/20 text-white backdrop-blur-sm px-10 py-3 rounded-full font-bold text-[10px] uppercase tracking-[0.2em] hover:bg-white hover:text-black transition-all text-center">
+                        <Link 
+                            to="/features" 
+                            className="backdrop-blur-sm px-10 py-3 rounded-full font-bold text-[10px] uppercase tracking-[0.2em] transition-all text-center"
+                            style={{
+                                border: '1px solid var(--border)',
+                                color: 'var(--text)',
+                                background: 'var(--glass-bg)',
+                            }}
+                            onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--text)'; e.currentTarget.style.color = 'var(--bg)'; }}
+                            onMouseLeave={(e) => { e.currentTarget.style.background = 'var(--glass-bg)'; e.currentTarget.style.color = 'var(--text)'; }}
+                        >
                             View Manifest
                         </Link>
                     </div>
@@ -42,7 +68,7 @@ const LandingPage = () => {
             </section>
 
             {/* Quick Stats/Social Proof */}
-            <section className="py-24 bg-black border-y border-white/5">
+            <section className="py-24" style={{ background: 'var(--bg)', borderTop: '1px solid var(--border-light)', borderBottom: '1px solid var(--border-light)' }}>
                 <div className="container mx-auto px-6">
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-12 md:gap-8 text-center">
                         <div className="space-y-3">
@@ -66,7 +92,7 @@ const LandingPage = () => {
             </section>
 
             {/* Features Preview */}
-            <section className="py-32 bg-black">
+            <section className="py-32" style={{ background: 'var(--bg)' }}>
                 <div className="container mx-auto px-6 max-w-6xl">
                     <div className="text-center mb-24">
                         <h2 className="text-[10px] font-bold uppercase tracking-[0.6em] text-zinc-700 mb-6">Core Architecture</h2>
